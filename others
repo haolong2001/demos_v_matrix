@@ -1,0 +1,25 @@
+check clang
+echo | clang -E -x c++ - -v
+
+
+clang++ -Iinclude src/main_sample.cpp src/module.cpp -o build/my_program
+
+
+Organize code into src/ for source files 
+and include/ for header files.
+
+Use relative paths (../include/module.h) 
+to include header files from other directories.
+
+Compile the project using a Makefile or manually using g++ with 
+-I to specify the include directory.
+
+-Iinclude: This option tells the compiler where to find additional header files.
+ In this case, -Iinclude means that any 
+ #include directives in your code that reference files in the 
+ include/ directory will work (e.g., #include "module.h"
+
+ -o build/my_program
+ created in the build/ directory and named my_program
+
+ The compiler will look in the src/ directory for these files

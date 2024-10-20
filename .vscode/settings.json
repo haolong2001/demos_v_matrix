@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "Eigen"
+    ],
+    "files.associations": {
+        "ios": "cpp",
+        "vector": "cpp",
+        "core": "cpp"
+    }
+}
