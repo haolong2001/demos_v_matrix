@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <Eigen/Dense>
 
 int main() {
@@ -20,6 +21,16 @@ int main() {
     Eigen::Matrix2d result = matrix + matrix2;
 
     std::cout << "The result of matrix addition is:\n" << result << std::endl;
+
+    
+
+    // check current directory code 
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        cout << "Current working directory: " << cwd << endl;
+    } else {
+        cerr << "Error getting current working directory" << endl;
+    }
 
     return 0;
 }
