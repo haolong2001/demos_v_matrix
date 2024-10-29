@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <EigenRand/EigenRand>
 #include <cmath>
+#include <queue>
 // for random matrix generation 
 using namespace std;
 using namespace Eigen;
@@ -207,41 +208,116 @@ int main() {
         vertically combine AgeMatrix and MigrationMatrix
 
         if (i % 2 == 1){
+            arrayXi births; 
             int num_childbear = num_by_ages.head(50).sum();
-             // 0 - 49 years old 
-            int 
+            // 0 - 49 years old 
+            childbearMatrix = AgeMatrix.block(0,1,num_childbear,AgeMatrix.cols()-1)
+            birth_matrix = generateBirth(childbearMatrix);
+            births = birth_matrix.colwise().sum();
+            //
+            std::vector<int> childbear_sum;
+            std::vector<int> rest_sum;
+
+            // Iterate through each column starting from index 1 to the last
+            for (int col = 1; col < num_col; ++col) {
+                // Access the specific column
+                Eigen::VectorXi current_col = immi_mat.col(col);
+                
+                // Calculate sum of the first 50 elements (head) and the last 36 elements (tail)
+                childbear_sum.push_back(current_col.head(50).sum());
+                rest_sum.push_back(current_col.tail(36).sum());
+            }
+
+            int start = 0;
+            for (int j = 1; j < num_col; ++j) {
+            // Access the block
+                int index = j - 1;
+                int len = childbear_sum[index];
+                Eigen::MatrixXi age_mat = immi_mat.block(start, i, len, num_col - i);
+                start = start + len + rest_sum[index];
+                birth_matrix = generateBirth(age_mat);
+                mig_births = (zeros(j), birth_matrix.colwise().sum() );// concate zero of number and birth_matrix.solsum
+                
+                Agematrix
+                births += mig_births
+            // Generate birth matrix (you need to provide implementation details here)
+            // ...
+                // int year = j + 1990 
+
+            
+
+
+        }
+        // add  back to age matrix 
+
+
         }
         MigrationMatrix[i];
-        AgeMatrix 
+        AgeMatrix; 
         // intiliaze the birth matrix by Migration / ExistingMatrix
         // assume that we have birth matrix already
         // and we used colsum to get birth every year 
 
-        VectorXi birth_per_year = repeat(20) 34 times;
-        // year 1991 - 2023 
-        //initialize a queue;
-        // birth_queue 
-        births is from  1990 to end_year - 15 
-        birth_queue.add(births)
-        while (!birth_queue.empty()){
-            // use queue to generate death and birth matrix 
-            // births from  year_a to year_b if not exist 
-            // add back to birth_queue  
+        // formal code for birth queue 
+        queue<int> birth_queue;
+        birth_queue.pushback(births);
+        birth_end = 2023 - 15;
+        birth_start = 1991;
+
+        while(!birth_queue.empty()){
+            // birth become mother * births in the future; 
+            if (birth_start > 2023 - 15):
+                break;
+            int nrows =  birth_end - birth_start + 1 // e.g  1991 - 2008 
+            int ncols = 2023 - (birth_start + 15 ) + 1 // e.g. 2006 - 2023
+            arrayxxi arraybirths(nrows,ncols);
+
+            for (i = 0; i < births.size(); ++i){
+                int num_mum = births[i];
+                int mig = i + 1 // mig index in existing matrix 
+                
+                // mig = year - 1990 
+                // if go to childbearing age within our range
+                if (mig  + 15 <= 33 ) {
+                    ArrayXXi Newborn = ExistingMatrix.block(
+                    start, mig + 15, num, 33 - (mig + 15) + 1;
+                )
+                    ArrayXXi ferferMat(nrows,ncols);
+                    for (int col = 0; col < Newborn.cols(); ++col) {
+                        for (int row = 0; row < Newborn.rows(); ++row) {
+                            int age = Newborn(row, col);
+                            // suppose begin 1991, then 2006 + 15 + col 
+                            int year_idx = birth_start + 15 + col - 1990 ; // 16 --> 
+                            int fer = MapFer(year_idx, age); // Assuming MapFer returns an int
+                            ferferMat(row, col) = fer;
+                        }
+                    }
+                    // ??? 
+                    std::random_device rd;
+                    std::mt19937 urng(rd());
+                    ArrayXXf random_values = ArrayXXf::Random(num, ncols - i).unaryExpr([](float val) { return (val + 1.0f) / 2.0f; });
+
+                    birthMat = (ferMat < random_values).cast<int>();
+
+                    newnewborn = birthMat.cols().sum();
+                    // (20, 30, 40) * 1.0 / 2.06
+                    females = (newnewborn * 1.0/ 2.06) .cast<int>;
+
+                    // 
+                    arraybirths[mig,:] = females
+
+                }
+            totalFemales = arraybirth.col.sum();
+            birth_queue.pop();
+            birth_queue.pushback(totalFemales);
+            }
+            // terminal condition, the birth won't enter childbearing age
+            // in our range
+            birth_start += 15;
+            
 
         }
 
-    
-
-        // # use ages to get death matrix as well; in this step, also get death numbers for each age strata  
-        // death
-        // # initialize the age matrix 
-        // # initialize the fertility matrix 
-        // for year in 1991 : 2023 
-        //     # get age strucutre and fertility as well
-        //     # calculate the data gap 
-        //     # add / delete data 
-        //     # get this year s data structure 
-        //     # next_year_age = ...
 
 
 

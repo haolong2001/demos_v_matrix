@@ -35,7 +35,17 @@ void generateRawBirthMat( const ArrayXXi ageMatrix,
 // mapping directly 
 
 
-
+// map the year and age to fertility 
+// the outside begins from year 1980
+// may optimize this part further 
+float MapFer(int i, int yar_idx, int age, const float (&fer_mat)[12][71][35] ){
+    
+    if (age > 15 & age < 49){
+        return fer_mat[i][yar_idx + 10][age - 15];
+    }
+    return 0.0;
+    // fer begins from 1980 
+}
 
 
 
