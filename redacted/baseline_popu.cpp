@@ -6,6 +6,7 @@
 #include <EigenRand/EigenRand>
 #include <cmath>
 #include <queue>
+#include <memory>
 // for random matrix generation 
 using namespace std;
 using namespace Eigen;
@@ -191,9 +192,16 @@ int main() {
     vector<MatrixXd> mat_list;
     int num_peo = 0;
 
+    // initialize a vector to store the 
+    // Initialize a vector of 8 elements
+    std::vector<
+        std::vector<
+            std::shared_ptr<Eigen::MatrixXd>
+                                            >> eth_matrices(8);
     for (int i = 0; i < 8; ++i){
         // get 1990 age array, storing the ages 
         // popu_mat is array size 
+        std::vector<std::shared_ptr<Eigen::MatrixXd>> matrices;
         
         VectorXi num_by_ages = mock_popu_mat[i].col(0); // column 0
         ArrayXXi AgeMatrix;
@@ -205,8 +213,10 @@ int main() {
         generateMigration(immi_mat[i],disappear_mat,MigrationMatrix[i]);
         
         // as final output 
-        vertically combine AgeMatrix and MigrationMatrix
+        // vertically combine AgeMatrix and MigrationMatrix
 
+
+        // generate birth from existing population
         if (i % 2 == 1){
             arrayXi births; 
             int num_childbear = num_by_ages.head(50).sum();
@@ -227,7 +237,7 @@ int main() {
                 childbear_sum.push_back(current_col.head(50).sum());
                 rest_sum.push_back(current_col.tail(36).sum());
             }
-
+          
             int start = 0;
             for (int j = 1; j < num_col; ++j) {
             // Access the block
@@ -236,24 +246,26 @@ int main() {
                 Eigen::MatrixXi age_mat = immi_mat.block(start, i, len, num_col - i);
                 start = start + len + rest_sum[index];
                 birth_matrix = generateBirth(age_mat);
-                mig_births = (zeros(j), birth_matrix.colwise().sum() );// concate zero of number and birth_matrix.solsum
+                mig_births = (zeros(j), birth_matrix.colwise().sum() );// concate zero of number and birth_matrix.colsum
                 
                 Agematrix
                 births += mig_births
             // Generate birth matrix (you need to provide implementation details here)
             // ...
-                // int year = j + 1990 
-
-            
-
-
-        }
+            // int year = j + 1990 
+            }
         // add  back to age matrix 
+            males = (births * 1.06/ 2.06) .cast<int>;
+            females = (births * 1.0/ 2.06) .cast<int>;
 
+            // initialize function here 
+            maleAgeMatrix = ArrayXXi( males.sum(), 2023 - 1990 + 1)
+            malebirthAge = generateAgefromBirth(males);
+            femalebirthAge = generateAgefromBirth(females);
 
-        }
-        MigrationMatrix[i];
-        AgeMatrix; 
+            auto matrixPtr = std::make_shared<Eigen::MatrixXd>(numRows, numCols);
+
+        // generate birth from birth 
         // intiliaze the birth matrix by Migration / ExistingMatrix
         // assume that we have birth matrix already
         // and we used colsum to get birth every year 
@@ -264,12 +276,12 @@ int main() {
         birth_end = 2023 - 15;
         birth_start = 1991;
 
-        while(!birth_queue.empty()){
+        while(birth_start <= 2023 - 15){
             // birth become mother * births in the future; 
-            if (birth_start > 2023 - 15):
-                break;
             int nrows =  birth_end - birth_start + 1 // e.g  1991 - 2008 
             int ncols = 2023 - (birth_start + 15 ) + 1 // e.g. 2006 - 2023
+
+
             arrayxxi arraybirths(nrows,ncols);
 
             for (i = 0; i < births.size(); ++i){
@@ -297,14 +309,33 @@ int main() {
                     std::mt19937 urng(rd());
                     ArrayXXf random_values = ArrayXXf::Random(num, ncols - i).unaryExpr([](float val) { return (val + 1.0f) / 2.0f; });
 
-                    birthMat = (ferMat < random_values).cast<int>();
+                    birthMat = (ferferMat < random_values).cast<int>();
 
                     newnewborn = birthMat.cols().sum();
                     // (20, 30, 40) * 1.0 / 2.06
+                    males = (newnewborn * 1.06/ 2.06) .cast<int>;
                     females = (newnewborn * 1.0/ 2.06) .cast<int>;
 
                     // 
-                    arraybirths[mig,:] = females
+                    malebirthAge = generateAgefromBirth(males);
+                    femalebirthAge = generateAgefromBirth(females);
+
+                    auto matrixPtr = std::make_shared<Eigen::MatrixXd>(numRows, numCols);
+
+                    // Fill the matrix with some values
+                    *matrixPtr = malebirthAge ;
+
+                    // Store the pointer to the matrix in the vector
+                    matrices[i-1].push_back(malebirthAge);
+                    
+                    *matrixPtr = femalebirthAge;
+
+                    matrices[i].push_back(femalebirthAge);
+
+
+                    arraybirth[mig,:] = females
+
+                    // 
 
                 }
             totalFemales = arraybirth.col.sum();
@@ -315,10 +346,10 @@ int main() {
             // in our range
             birth_start += 15;
             
-
         }
+    }
 
-
+    // end of block ending
 
 
 
