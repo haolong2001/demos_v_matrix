@@ -91,3 +91,9 @@ otherwise, you cannot use the variable defined in the original function.
 
 比如我要写整个流程，但是我不会输出logging file，那我就要把我整个思路打断掉
 
+
+
+
+
+clang++ -std=c++11 -Iinclude src/deathages.cpp test/test_initial_popu.cpp -o build/test_initial_popu
+

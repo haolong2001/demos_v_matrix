@@ -22,35 +22,11 @@ DataLoader::DataLoader(int mockScale)
     for (size_t i = 0; i < 8; ++i) {
         mock_popu_mat[i] = Eigen::MatrixXi::Zero(86, 35);  // Initialize with zeros
         mor_eig_mat[i] = Eigen::ArrayXXf::Zero(86, 34);
-        disappear_mat[i] = Eigen::ArrayXXf::Zero(86, 34);
+        disappear_mat[i] = Eigen::ArrayXXf::Zero(119, 34);
         migration_in[i] = Eigen::ArrayXXi::Zero(86, 34);
     }
 }
 
-
-// DataLoader::DataLoader(int mockScale) 
-//     : mockScale(mockScale)
-//     , popu_mat(POPU_MAT_SIZE, 0.0f)
-//     , fer_mat(FER_MAT_SIZE, 0.0f) 
-    
-//     mock_popu_mat.resize(8);
-//     mor_eig_mat.resize(8);
-//     disappear_mat.resize(8);
-//     migration_in.resize(8);
-
-//     // Initialize matrices with proper dimensions
-//     // population 1990 - 2024;
-//     // others 1990 - 2023
-// {
-//     for (int i = 0; i < 8; ++i) {
-//         mock_popu_mat[i] = Eigen::MatrixXi(86, 35);
-//         mor_eig_mat[i] = Eigen::ArrayXXf(86, 34);
-//         disappear_mat[i] = Eigen::ArrayXXf(86, 34);
-//         migration_in[i] = Eigen::ArrayXXf(86, 34);
-//     }
-// }
-
-// DataLoader::~DataLoader() = default;
 
 bool DataLoader::readPopuMat(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
@@ -102,28 +78,51 @@ bool DataLoader::readMorEigMat(const std::string& filename) {
         return false;
     }
 
-    const size_t matrix_size = 86 * 34;
+    const size_t matrix_size = 86 * 34 * 8;
     std::vector<double> temp_buffer(matrix_size);
-
-    for (size_t i = 0; i < mor_eig_mat.size(); ++i) {
-        // c++ read with an auto pointer 
-        file.read(reinterpret_cast<char*>(temp_buffer.data()),
-                 matrix_size * sizeof(double));
-                 
-        if (!file) {
-            std::cerr << "Failed to read mortality matrix data" << std::endl;
-            return false;
-        }
-
-        // Convert and copy to Eigen array
-        for (size_t j = 0; j < matrix_size; ++j) {
-            mor_eig_mat[i].data()[j] = static_cast<float>(temp_buffer[j]);
+ 
+    file.read(reinterpret_cast<char*>(temp_buffer.data()), POPU_MAT_SIZE * sizeof(double) );
+ 
+    // Now reshape into your matrix (assuming mor_eig_mat is your target container)
+    // The data should naturally be in the correct 8 x 86 x 34 layout
+    for (size_t i = 0; i < 8; ++i) {
+        for (size_t row = 0; row < 86; ++row) {
+            for (size_t col = 0; col < 34; ++col) {
+                size_t idx = i * (86 * 34) + row * 34 + col;
+                mor_eig_mat[i](row, col) = static_cast<float>(temp_buffer[idx]);
+            }
         }
     }
 
     return true;
 }
+    // for (size_t i = 0; i < mor_eig_mat.size(); ++i) {
+    //     // c++ read with an auto pointer 
+    //     file.read(reinterpret_cast<char*>(temp_buffer.data()),
+    //              matrix_size * sizeof(double));
+                 
+    //     if (!file) {
+    //         std::cerr << "Failed to read mortality matrix data" << std::endl;
+    //         return false;
+    //     }
 
+    //     // Convert and copy to Eigen array
+    //     // for (size_t j = 0; j < matrix_size; ++j) {
+    //     //     mor_eig_mat[i].data()[j] = static_cast<float>(temp_buffer[j]);
+    //     // }
+
+    //     for (size_t i = 0; i < 8; ++i) {
+    //         for (size_t row = 0; row < 86; ++row) {
+    //             for (size_t col = 0; col < 34; ++col) {
+    //                 size_t idx = i * (86 * 34) + row * 34 + col;
+    //                 mor_eig_mat[i](row, col) = static_cast<float>(temp_buffer[idx]);
+    //         }
+    //     }
+    // }
+    // }
+
+
+// serve as 
 bool DataLoader::readDisEigMat(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
@@ -131,26 +130,33 @@ bool DataLoader::readDisEigMat(const std::string& filename) {
         return false;
     }
 
-    const size_t matrix_size = 86 * 34;
+    const size_t matrix_size = 119 * 34 * 8 ;
     std::vector<double> temp_buffer(matrix_size);
 
-    for (size_t i = 0; i < disappear_mat.size(); ++i) {
-        file.read(reinterpret_cast<char*>(temp_buffer.data()),
+    
+    file.read(reinterpret_cast<char*>(temp_buffer.data()),
                  matrix_size * sizeof(double));
                  
-        if (!file) {
+    if (!file) {
             std::cerr << "Failed to read disappear matrix data" << std::endl;
             return false;
         }
 
-        // Convert and copy to Eigen array
-        for (size_t j = 0; j < matrix_size; ++j) {
-            disappear_mat[i].data()[j] = static_cast<float>(temp_buffer[j]);
+    std::cout << "step 1" << std::endl;
+    // Reshape into 8 x 119 x 34 format
+    for (size_t i = 0; i < 8; ++i) {
+        for (size_t row = 0; row < 119; ++row) {
+            for (size_t col = 0; col < 34; ++col) {
+                size_t idx = i * (119 * 34) + row * 34 + col;
+                // if ( idx <= 10 ){
+                // std::cout << temp_buffer[idx] << std::endl;
+                // }
+                disappear_mat[i](row, col) = (temp_buffer[idx]);
+                // disappear_mat[idx] = static_cast<float>(temp_buffer[idx]);
+            }
         }
-
-        // Add mortality matrix
-        disappear_mat[i] += mor_eig_mat[i % 2];
     }
+    
 
     return true;
 }
@@ -171,9 +177,16 @@ bool DataLoader::readFerMat(const std::string& filename) {
         return false;
     }
 
-    // Convert double to float
-    for (size_t i = 0; i < FER_MAT_SIZE; ++i) {
-        fer_mat[i] = static_cast<float>(temp_buffer[i]);
+    // Reshape into 12 x 71 x 35 format
+    for (size_t i = 0; i < 12; ++i) {
+        for (size_t row = 0; row < 71; ++row) {
+            for (size_t col = 0; col < 35; ++col) {
+                size_t idx = i * (71 * 35) + row * 35 + col;
+                            // debug
+            
+                fer_mat[idx] = static_cast<float>(temp_buffer[idx]);
+            }
+        }
     }
 
     return true;
@@ -186,28 +199,40 @@ bool DataLoader::readImmiEigMat(const std::string& filename) {
         return false;
     }
 
-    const size_t matrix_size = 86 * 34;
+    const size_t matrix_size = 86 * 34 * 8;
     std::vector<double> temp_buffer(matrix_size);
 
-    for (size_t i = 0; i < migration_in.size(); ++i) {
-        file.read(reinterpret_cast<char*>(temp_buffer.data()),
+    
+    file.read(reinterpret_cast<char*>(temp_buffer.data()),
                  matrix_size * sizeof(double));
                  
-        if (!file) {
-            std::cerr << "Failed to read immigration matrix data" << std::endl;
-            return false;
-        }
+    if (!file) {
+        std::cerr << "Failed to read immigration matrix data" << std::endl;
+        return false;
+    }   
 
     // const double mockScaleDouble = static_cast<double>(mockScale); 
         // Convert double to float, scale, and store as integer
-        for (size_t j = 0; j < matrix_size; ++j) {
-            // double scaled = temp_buffer[j] / mockScaleDouble;
-            migration_in[i].data()[j] = temp_buffer[j] / mockScale;
-       }
+    //     for (size_t j = 0; j < matrix_size; ++j) {
+    //         // double scaled = temp_buffer[j] / mockScaleDouble;
+    //         migration_in[i].data()[j] = temp_buffer[j] / mockScale;
+    //    }
+    for (size_t i = 0; i < 8; ++i) {
+        for (size_t row = 0; row < 86; ++row) {
+            for (size_t col = 0; col < 34; ++col) {
+                size_t idx = i * (86 * 34) + row * 34 + col;
+                // debug
+                // if ( idx <= 10 ){
+                //     std::cout << temp_buffer[idx] << std::endl;
+                // }
+                migration_in[i](row, col) = static_cast<int>(temp_buffer[idx] / mockScale);
+            }
+        }
+    }
 
         
 
-    }
+    
 
     // debug
         // std::cout << mockScale << " ";

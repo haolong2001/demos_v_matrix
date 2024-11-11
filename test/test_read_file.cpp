@@ -95,8 +95,8 @@ int main() {
 
     const std::vector<FileInfo> dataFiles = {
         {"result_matrix_data.bin", &DataLoader::readPopuMat},
-        {"./data/bin/disappear.bin", &DataLoader::readMorEigMat},
-        {"./data/bin/mig_disappear.bin", &DataLoader::readDisEigMat},
+        {"./data/bin/mig_disappear.bin", &DataLoader::readMorEigMat},
+        {"./data/bin/disappear.bin", &DataLoader::readDisEigMat},
         {"./data/bin/AESFR_matrix_combine.bin", &DataLoader::readFerMat},
         {"./data/bin/migration_in.bin", &DataLoader::readImmiEigMat}
     };
@@ -116,7 +116,12 @@ int main() {
     }
 
     // Print disappear matrix
-    logfile << "First matrix of disappear_mat[0]:" << std::endl;
+    logfile << "First matrix of mor_eig_mat[0]:" << std::endl;
+    if (!dataLoader.mor_eig_mat.empty()) {
+        printMatrix(dataLoader.mor_eig_mat[0], logfile);
+    }
+
+    logfile << "First matrix of disappear[0]:" << std::endl;
     if (!dataLoader.disappear_mat.empty()) {
         printMatrix(dataLoader.disappear_mat[0], logfile);
     }

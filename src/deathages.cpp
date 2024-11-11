@@ -2,125 +2,103 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <EigenRand/EigenRand>
+#include "deathages.h"
 
 using namespace Eigen;
 using namespace std;
 
-int target_end = 2023;
-int n_years = target_end - 1990;
+
+PopulationSimulator:: PopulationSimulator()
+ : random_generator(42){}
+        
 
 
-/**
- * @param num_by_ages, gender, reference to death table 
- * deleted: @param deathNumMatrix ,MatrixXi& deathNumMatrix
- */
-void generateDeath(VectorXi num_by_ages,int g, 
-                   const vector<ArrayXXf>& disappear_mat,
-                   ArrayXXi AgeMatrix,
-                   ArrayXXi ExistingMatrix
+    /**
+     * Generates death matrix based on age distribution and mortality rates
+     * @param num_by_ages Vector containing number of people in each age group
+     * @param gender_index Gender index for mortality rates
+     * @param disappear_mat Mortality rates matrix
+     * @return Pair of matrices: death matrix and existing matrix (1 = alive, 0 = dead)
+     */
 
-                    ) {
-    
-    Rand::P8_mt19937_64 urng{42};
-    int cur_start = 0;
-    int n_rows = num_by_ages.sum();
-    MatrixXf prob_mat(n_rows, n_years);
-
-    for (int j = 0; j < num_by_ages.size(); ++j) {
-        int num = num_by_ages[j]; // this is the number of age j
-        int cur_end = cur_start + num -1;
-        // construct the age matrix as well 
-
-        // extract the mortality vector 
-        VectorXf mor_vec = disappear_mat[g](j,all);
-
-        MatrixXf replicated = mor_vec.replicate(1,num).transpose();
-
-        prob_mat.block(cur_start, 0, num, n_years) = replicated;
-
-        // matrix comparsion 
-        // MatrixXi death_by_age =
-
-    }
-   ArrayXXf randMatrix = Rand::balanced<ArrayXXf>(n_rows, n_years, urng,0,1);
-
-    // 1 means alive and 0 means death 
-    MatrixXi result = (randMatrix.array() > prob_mat.array()).cast<int>();
-    
-    // delete later , make sure once death, no longer alive anymore
-    for (int i = 0; i < result.rows(); ++i) {
-        if (result.row(i).sum() == n_years)
-            break;
-        // backward finding 
-        for (int j = 0; j < result.cols(); ++j) {
-            if (result(i, j) == 0) {
-                // Set all subsequent elements in the row to 0
-                result.block(i, j, 1, result.cols() - j).setZero();
-                break; // Exit the inner loop after modifying the row
+ArrayXXi PopulationSimulator::generateDeathMatrix(
+        const VectorXi& num_by_ages,
+        int index,
+        const vector<ArrayXXf>& disappear_mat) {
+        
+        Rand::P8_mt19937_64 urng{42}; // Fixed seed for reproducibility
+        int total_population = num_by_ages.sum();
+        
+        // Initialize matrices
+        ArrayXXf prob_mat(total_population, NUM_YEARS);
+        
+        std::cout << "Step 2: okay" << std::endl;
+        // Fill probability matrix
+        int current_row = 0;
+        for (int age = 0; age < num_by_ages.size(); ++age) {
+            int num_people = num_by_ages[age];
+            if (num_people > 0) {
+                VectorXf mortality_rates = disappear_mat[index].row(age);
+                prob_mat.block(current_row, 0, num_people, NUM_YEARS) = 
+                    mortality_rates.replicate(1, num_people).transpose();
+                current_row += num_people;
             }
         }
-    }
+        std::cout <<"step 3 okay" << endl;
+        // Generate random matrix and compare with probability matrix
+        ArrayXXf rand_matrix = Rand::balanced<ArrayXXf>(total_population, NUM_YEARS, urng, 0, 1);
+        // 1 means alive; 0 means death
+        ArrayXXi existing_matrix = (rand_matrix > prob_mat).cast<int>();
 
-    // VectorXXf result;
-}
-
-/**
- * write a hashmap to store the death people in each year; 
- * notice that we will update the hash map/ dictionary as well. 
- */
-
-
-
-int main() {
-    // here 
-    MatrixXi deathNumMatrix(86,n_years);
-
-
-
-
-
-
-    // Example sizes (adjust to your actual input data)
-    vector<int> num_ages = {5, 6, 4}; // Example age group sizes
-    int end_idx = 3; // This represents the number of years or the end index for mortality data
-    int n_rows = accumulate(num_ages.begin(), num_ages.end(), 0); // Total number of rows (sum of age group sizes)
-    int n_years = end_idx + 1; // Number of years
-
-    // Initialize the matrix to store probabilities
-    MatrixXf prob_mat(n_rows, n_years); // prob_mat with dimensions [total rows, n_years]
-
-    // Example mortality matrix mor_mat, with 2 dimensions for your use case
-    // Adjust dimensions and values according to your actual data structure
-    vector<vector<MatrixXf>> mor_mat(2, vector<MatrixXf>(num_ages.size(), MatrixXf::Zero(n_years, 1)));
-
-    // Fill mor_mat with example data (replace with your actual mortality data)
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < num_ages.size(); ++j) {
-            mor_mat[i][j] = MatrixXf::Random(n_years, 1); // Random example data, replace with actual data
+        // Ensure death permanence (once dead, stays dead)
+        for (int i = 0; i < existing_matrix.rows(); ++i) {
+            bool found_death = false;
+            for (int j = 0; j < existing_matrix.cols(); ++j) {
+                if (!found_death && existing_matrix(i, j) == 0) {
+                    found_death = true;
+                }
+                if (found_death) {
+                    existing_matrix(i, j) = 0;
+                }
+            }
         }
+
+        // Generate death matrix (inverse of existing matrix)
+        // then 1 means 
+        // ArrayXXi death_matrix = !(existing_matrix.cast<bool>()).cast<int>();
+        
+        return existing_matrix;
     }
 
-    int cur_start = 0; // Track the current start index in the prob_mat
-
-    for (int j = 0; j < num_ages.size(); ++j) {
-        int num_age = num_ages[j]; // Get the number of rows for the current age group
-        int cur_end = cur_start + num_age - 1; // Calculate the end index
-
-        // Get the mortality vector for the current age group
-        MatrixXf mor_vec = mor_mat[0][j].transpose(); // Example for i = 0, adjust as needed
-
-        // Replicate mor_vec for the number of rows (age group size)
-        MatrixXf replicated_mor_vec = mor_vec.replicate(num_age, 1);
-
-        // Assign the replicated matrix to the appropriate block in prob_mat
-        prob_mat.block(cur_start, 0, num_age, n_years) = replicated_mor_vec;
-
-        // Update the start index for the next age group
-        cur_start = cur_end + 1;
+    /**
+     * Generates age matrix based on initial ages and existing matrix
+     * @param num_by_ages Vector containing number of people in each age group
+     * @param existing_matrix Matrix indicating alive (1) or dead (0) status
+     * @return Age matrix with ages for each person at each year
+     */
+    ArrayXXi PopulationSimulator::generateAgeMatrix(
+        const VectorXi& num_by_ages,
+        const ArrayXXi& existing_matrix) {
+        
+        int total_population = num_by_ages.sum();
+        ArrayXXi age_matrix = ArrayXXi::Zero(total_population, NUM_YEARS);
+        
+        // Create initial age vector
+        VectorXi initial_ages(total_population);
+        int current_index = 0;
+        for (int age = 0; age < num_by_ages.size(); ++age) {
+            initial_ages.segment(current_index, num_by_ages[age]).setConstant(age);
+            current_index += num_by_ages[age];
+        }
+        
+        // Generate year offsets
+        ArrayXi year_offsets = ArrayXi::LinSpaced(NUM_YEARS, 0, NUM_YEARS - 1);
+        
+        // Fill age matrix
+        for (int i = 0; i < total_population; ++i) {
+            age_matrix.row(i) = (initial_ages[i] + year_offsets) * existing_matrix.row(i);
+        }
+        
+        return age_matrix;
     }
 
-    // Output the resulting prob_mat for verification
-    cout << "Resulting prob_mat:\n" << prob_mat << endl;
-
-    return 0;
-}

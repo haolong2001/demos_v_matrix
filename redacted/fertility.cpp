@@ -17,6 +17,7 @@ ArrayXXi generateAgeMatrix(const VectorXi& ages, int num_years) {
     ArrayXXi ages_matrix = ages.replicate(1,num_years);
     cout << "age matrix: \n " << ages_matrix << endl;
 
+    
     ArrayXXi ageMatrix = (range_matrix + ages_matrix);  // Cast ArrayXXi to MatrixXf
     return  ageMatrix;
 }

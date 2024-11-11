@@ -48,7 +48,7 @@ int main() {
             return -1;
         }
     }
-    //
+    // 
     
 
     // initialize the 1990 population
@@ -62,3 +62,6 @@ int main() {
 
     return 0;
 }
+
+// chinese male 
+// 

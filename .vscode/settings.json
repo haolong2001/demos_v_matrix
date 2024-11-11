@@ -60,6 +60,7 @@
         "typeinfo": "cpp",
         "unordered_map": "cpp",
         "variant": "cpp",
-        "eigenrand": "cpp"
+        "eigenrand": "cpp",
+        "dense": "cpp"
     }
 }
