@@ -1,67 +1,75 @@
-
 #include <iostream>
-#include <filesystem>
-#include <fstream>
-#include <unistd.h>
-#include <limits.h>
-
-#include <Eigen/Dense>
-#include <EigenRand/EigenRand>
-#include <cmath>
-#include <queue>
-#include <memory>
-
+#include <string>
 #include "DataLoader.h"
+#include "deathages.h"
+#include "migration.h"
 
-
-using namespace std;
 using namespace Eigen;
+using namespace std;
 
 int main() {
-    const int mockScale = 100;
-    DataLoader dataLoader(mockScale);
-
-    std::ofstream logfile("src/main_log.txt");
-    if (!logfile) {
-        std::cerr << "Failed to open log file" << std::endl;
-        return -1;
-    }
-
-   // C++11 compatible version of reading data files
-    struct FileInfo {
-        std::string filename;
-        bool (DataLoader::*readFunc)(const std::string&);
-    };
-
-    const std::vector<FileInfo> dataFiles = {
-        {"result_matrix_data.bin", &DataLoader::readPopuMat},
-        {"./data/bin/disappear.bin", &DataLoader::readMorEigMat},
-        {"./data/bin/mig_disappear.bin", &DataLoader::readDisEigMat},
-        {"./data/bin/AESFR_matrix_combine.bin", &DataLoader::readFerMat},
-        {"./data/bin/migration_in.bin", &DataLoader::readImmiEigMat}
-    };
-
-    // read files directly
-    for (const FileInfo& fileInfo : dataFiles) {
-        if (!(dataLoader.*fileInfo.readFunc)(fileInfo.filename)) {
-            std::cerr << "Failed to read " << fileInfo.filename << std::endl;
-            return -1;
+    try {
+        // Initialize DataLoader with mock scale
+        const int mockScale = 100;
+        DataLoader dataLoader(mockScale);
+        
+        // Read all necessary data files
+        if (!dataLoader.readPopuMat("data/population.bin")) {
+            cerr << "Failed to read population data" << endl;
+            return 1;
         }
+        
+        if (!dataLoader.readDisEigMat("data/disappearance.bin")) {
+            cerr << "Failed to read disappearance data" << endl;
+            return 1;
+        }
+
+        // Initialize vectors to store results for all 8 ethnic groups
+        vector<vector<ArrayXXi>> age_matrix(8);
+        vector<ArrayXXi> existing_matrix(8);
+        vector<vector<ArrayXXi>> migration_age_matrix(8);
+
+        // Create MigrationSimulator instance
+        MigrationSimulator simulator;
+
+        // Process each ethnic group
+        for (int i = 0; i < 8; ++i) {
+            cout << "Processing ethnic group " << i << endl;
+            
+            // Process population
+            VectorXi num_by_ages = dataLoader.mock_popu_mat[i].col(0);
+            PopulationSimulator pop_simulator;
+            age_matrix[i].push_back(pop_simulator.generateAgeMatrix(
+                num_by_ages,
+                existing_matrix[i]
+            ));
+
+            // Process migration
+            ArrayXXi migra_mat = dataLoader.migration_in[i];
+            ArrayXXi migration_result = simulator.generateMigration(
+                migra_mat, 
+                dataLoader.disappear_mat, 
+                i
+            );
+            
+            // Store migration result
+            age_matrix[i].push_back(migration_result);
+
+            // deal with fertility 
+            // read the female index 
+            generateBirth(age_matrix[i][0])
+
+
+            cout << "Completed processing ethnic group " << i << endl;  
+        }
+
+        cout << "All ethnic groups processed successfully" << endl;
+        return 0;
+
+    } catch (const exception& e) {
+        cerr << "Error: " << e.what() << endl;
+        return 1;
     }
-    // 
-    
-
-    // initialize the 1990 population
-    for (int i = 0; i < 8; ++i){
-        VectorXi num_by_ages = dataLoader.mock_popu_mat[i].col(0); // column 0
-        generateAges(num_by_ages,i ,disappear_mat,AgeMatrix,ExistingMatrix);
-
-
-    }
- 
-
-    return 0;
 }
-
 // chinese male 
 // 

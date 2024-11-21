@@ -87,28 +87,12 @@ int main() {
         return -1;
     }
 
-   // C++11 compatible version of reading data files
-    struct FileInfo {
-        std::string filename;
-        bool (DataLoader::*readFunc)(const std::string&);
-    };
-
-    const std::vector<FileInfo> dataFiles = {
-        {"result_matrix_data.bin", &DataLoader::readPopuMat},
-        {"./data/bin/mig_disappear.bin", &DataLoader::readMorEigMat},
-        {"./data/bin/disappear.bin", &DataLoader::readDisEigMat},
-        {"./data/bin/AESFR_matrix_combine.bin", &DataLoader::readFerMat},
-        {"./data/bin/migration_in.bin", &DataLoader::readImmiEigMat}
-    };
-
-    // read files directly
-    for (const FileInfo& fileInfo : dataFiles) {
-        if (!(dataLoader.*fileInfo.readFunc)(fileInfo.filename)) {
-            std::cerr << "Failed to read " << fileInfo.filename << std::endl;
-            return -1;
-        }
+    if (!dataLoader.readAllData()) {
+        std::cerr << "Failed to read data files" << std::endl;
+        return -1;
     }
 
+   
     // Print population matrix
     logfile <<"First matrix of mock_popu_mat[0]:" << std::endl;
     if (!dataLoader.mock_popu_mat.empty()) {
@@ -134,3 +118,27 @@ int main() {
     printMatrix(dataLoader.migration_in[0], logfile);
     return 0;
 }
+
+
+
+// // C++11 compatible version of reading data files
+//     struct FileInfo {
+//         std::string filename;
+//         bool (DataLoader::*readFunc)(const std::string&);
+//     };
+
+//     const std::vector<FileInfo> dataFiles = {
+//         {"result_matrix_data.bin", &DataLoader::readPopuMat},
+//         {"./data/bin/mig_disappear.bin", &DataLoader::readMorEigMat},
+//         {"./data/bin/disappear.bin", &DataLoader::readDisEigMat},
+//         {"./data/bin/AESFR_matrix_combine.bin", &DataLoader::readFerMat},
+//         {"./data/bin/migration_in.bin", &DataLoader::readImmiEigMat}
+//     };
+
+//     // read files directly
+//     for (const FileInfo& fileInfo : dataFiles) {
+//         if (!(dataLoader.*fileInfo.readFunc)(fileInfo.filename)) {
+//             std::cerr << "Failed to read " << fileInfo.filename << std::endl;
+//             return -1;
+//         }
+//     }

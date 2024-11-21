@@ -1,0 +1,7 @@
+#ifndef GLOBAL_CONSTANTS_H
+#define GLOBAL_CONSTANTS_H
+
+const int NUM_YEARS = 34;
+const int NUM_AGE_GROUPS = 86;
+
+#endif // GLOBAL_CONSTANTS_H

@@ -1,97 +1,279 @@
+#include "migration.h"
 
-
-
-#include <Eigen/Dense>
-#include <random>
-#include <iostream>
 using namespace Eigen;
+using namespace std;
 
-/**
- * @brief Generates a migration matrix and updates an existing population matrix.
- *
- * @param MigNumMat       Matrix containing migration numbers.
- * @param disappear_mat   Matrix containing disappearance rates.
- * @param ExistingMatrix  Matrix to update with generated migration data.
- * @param MigAgeMatrix    Matrix for age-related migration (currently unused).
- */
-void generateMigration(
-    const ArrayXXi& MigNumMat,
-    const ArrayXXf& disappear_mat,
-    ArrayXXi& ExistingMatrix,
-    ArrayXXi& MigAgeMatrix
-) {
-    const int ncols = 34; // Total number of columns (could represent years). TODO: Confirm with Gang
-    const int nrows = 86; // Represents the number of age groups
+ArrayXXf MigrationSimulator::generateRandomValues(int rows, int cols) {
+    std::random_device rd;
+    std::mt19937 urng(rd());
+    return ArrayXXf::Random(rows, cols).unaryExpr([](float val) { 
+        return (val + 1.0f) / 2.0f; 
+    });
+}
 
-    int start = 0;       // Starting index for the block in ExistingMatrix
-    int sub_immi_num = 0; // Sum of migrants in a particular year
-    int num = 0;         // Number of migrants in a specific age group
-    int idx = 0;         // Adjusted index for accessing disappearance rates
+MigrationSimulator::MigrationSimulator(const std::string& log_path) {
+    if (!log_path.empty()) {
+        log_file.open(log_path);
+    }
+}
 
-    ArrayXf rate;        // Array to store disappearance rates for a specific group
-    ArrayXXf temp;       // Temporary array to store replicated disappearance rates
+MigrationSimulator::~MigrationSimulator() {
+    if (log_file.is_open()) {
+        log_file.close();
+    }
+}
 
-    // Iterate through each year starting from the second column
-    for (int i = 1; i < ncols; ++i) {
-        ArrayXi vec = MigNumMat.col(i);
-        sub_immi_num = vec.sum();
-
-        // Set a block of the ExistingMatrix to -1 to mark migrants
-        ExistingMatrix.block(start, 0, sub_immi_num, i) = -1;
-
-        // Iterate through each age group
-        for (int j = 0; j < nrows; ++j) {
-            num = vec[j];
-            idx = j - i + 33; // Equivalent to j - i age, adjusted for indexing
-
-            if (idx < 0 || idx >= disappear_mat.rows()) {
-                continue; // Skip if the index is out of bounds
+void MigrationSimulator::updateSurvivalStatus(ArrayXXi& survival_status) {
+    const int rows = survival_status.rows();
+    const int cols = survival_status.cols();
+    
+    for (int i = 0; i < rows; ++i) {
+        bool disappeared = false;
+        for (int j = 0; j < cols; ++j) {
+            if (!disappeared && survival_status(i, j) == 0) {
+                disappeared = true;
             }
-
-            // Extract disappearance rates for the corresponding age group and year
-            rate = disappear_mat.block(idx, i, 1, ncols - i);
-            
-            // Replicate the rate for the number of migrants and transpose
-            temp = rate.replicate(1, num).transpose();
-
-            // Generate random values for comparison
-            std::random_device rd;
-            std::mt19937 urng(rd());
-            ArrayXXf random_values = ArrayXXf::Random(num, ncols - i).unaryExpr([](float val) { return (val + 1.0f) / 2.0f; });
-
-            // Update the ExistingMatrix with migration data based on disappearance rates
-            ExistingMatrix.block(start, i + 1, num, ncols - i) = (temp <= random_values).cast<int>();
+            if (disappeared) {
+                survival_status(i, j) = 0;
+            }
         }
     }
 }
 
+ArrayXXi MigrationSimulator::generateMigration(
+    const ArrayXXi& MigNumMat,
+    const vector<ArrayXXf>& disappear_mat,
+    int index
+) {    
+    int total_immigrants = MigNumMat.sum();
+    ArrayXXi ExistingMatrix = ArrayXXi::Zero(total_immigrants, NUM_YEARS);
+    ArrayXXi AgeMatrix = ArrayXXi(total_immigrants, NUM_YEARS);
+    AgeMatrix.setConstant(-1);
+    int start_pos = 0;
+    
+    // Process each year starting from year 1
+    for (int year = 1; year < NUM_YEARS; ++year) {
+        ArrayXi immigrants_per_age = MigNumMat.col(year);
+        
+        // Process each age group
+        for (int age = 0; age < NUM_AGE_GROUPS; ++age) {
+            int num_immigrants = immigrants_per_age[age];
+            if (num_immigrants == 0) continue;
+            
+            // Calculate adjusted index for disappearance rates
+            int disappear_idx = age - year + 33;
+            if (disappear_idx < 0 || disappear_idx >= disappear_mat[index].rows()) {
+                continue;
+            }
+
+            // Get disappearance rates and generate survival status
+            ArrayXf rates = disappear_mat[index].row(disappear_idx).segment(year, NUM_YEARS - year);
+            ArrayXXf replicated_rates = rates.replicate(1, num_immigrants).transpose();
+            ArrayXXi survival_status = (generateRandomValues(num_immigrants, NUM_YEARS - year) <= replicated_rates).cast<int>();
+            
+            updateSurvivalStatus(survival_status);
+            ExistingMatrix.block(start_pos, year, num_immigrants, NUM_YEARS - year) = survival_status;
+            
+            // Generate age matrix
+            ArrayXXi age_block = ArrayXXi::Zero(num_immigrants, NUM_YEARS - year);
+            for (int t = 0; t < NUM_YEARS - year; ++t) {
+                age_block.col(t).setConstant(age + t);
+            }
+            
+            // Apply age only where person exists
+            age_block = (survival_status.array() > 0).select(age_block, -1);
+            AgeMatrix.block(start_pos, year, num_immigrants, NUM_YEARS - year) = age_block;
+            
+            start_pos += num_immigrants;
+        }
+    }
+    
+    return AgeMatrix;
 
 
-// Example to test the function
-int main() {
-    // Define small matrices for testing
-    ArrayXXi MigNumMat(3, 4);
-    MigNumMat << 1, 2, 0, 1,
-                 0, 1, 3, 0,
-                 2, 0, 1, 2;
-
-    ArrayXXf disappear_mat(3, 4);
-    disappear_mat << 0.1f, 0.2f, 0.3f, 0.4f,
-                     0.5f, 0.6f, 0.7f, 0.8f,
-                     0.9f, 0.1f, 0.2f, 0.3f;
-
-    ArrayXXi ExistingMatrix = ArrayXXi::Zero(10, 4);
-    ArrayXXi MigAgeMatrix = ArrayXXi::Zero(3, 4); // Currently unused
-
-
-    ArrayXXi ExistingMatrix = ArrayXXi::Zero(10, 4);
-    ArrayXXi MigAgeMatrix = ArrayXXi::Zero(3, 4); // Currently unused
-
-    // Call the function
-    generateMigration(MigNumMat, disappear_mat, ExistingMatrix, MigAgeMatrix);
-
-    // Print the updated ExistingMatrix
-    std::cout << "Updated ExistingMatrix:\n" << ExistingMatrix << std::endl;
-
-    return 0;
 }
+
+
+// #include <Eigen/Dense>
+// #include <random>
+// #include <iostream>
+// #include <vector>
+// #include <fstream>
+// #include "DataLoader.h"
+
+// using namespace Eigen;
+// using namespace std;
+
+// class MigrationSimulator {
+// private:
+//     const int NUM_AGE_GROUPS = 86;
+//     const int NUM_YEARS = 34;
+//     std::ofstream log_file;
+
+//     /**
+//      * @brief Generates random values between 0 and 1
+//      * @param rows Number of rows
+//      * @param cols Number of columns
+//      * @return Matrix of random values
+//      */
+//     ArrayXXf generateRandomValues(int rows, int cols) {
+//         std::random_device rd;
+//         std::mt19937 urng(rd());
+//         return ArrayXXf::Random(rows, cols).unaryExpr([](float val) { 
+//             return (val + 1.0f) / 2.0f; 
+//         });
+//     }
+
+// public:
+//     MigrationSimulator(const std::string& log_path) {
+//         log_file.open(log_path);
+//         if (!log_file.is_open()) {
+//             throw std::runtime_error("Failed to open log file: " + log_path);
+//         }
+//     }
+
+//     ~MigrationSimulator() {
+//         if (log_file.is_open()) {
+//             log_file.close();
+//         }
+//     }
+
+//     /**
+//      * @brief Updates survival status to ensure death is permanent
+//      * If a person disappears (status = 0), they remain disappeared for all subsequent years
+//      */
+//     void updateSurvivalStatus(ArrayXXi& survival_status) {
+//         const int rows = survival_status.rows();
+//         const int cols = survival_status.cols();
+        
+//         for (int i = 0; i < rows; ++i) {
+//             bool disappeared = false;
+//             for (int j = 0; j < cols; ++j) {
+//                 if (!disappeared && survival_status(i, j) == 0) {
+//                     disappeared = true;
+//                 }
+//                 if (disappeared) {
+//                     survival_status(i, j) = 0;
+//                 }
+//             }
+//         }
+//     }
+
+//     /**
+//      * @brief Generates migration and age matrices based on input parameters
+//      * 
+//      * @param MigNumMat Matrix containing migration numbers per age group and year
+//      * @param disappear_mat Vector of disappearance rate matrices
+//      * @param index Index for selecting disappearance matrix
+//      * @param ExistingMatrix Output matrix tracking existence status
+//      * @param AgeMatrix Output matrix tracking ages
+//      */
+//     void generateMigration(
+//         const ArrayXXi& MigNumMat,
+//         const vector<ArrayXXf>& disappear_mat,
+//         int index,
+//         ArrayXXi& ExistingMatrix,
+//         ArrayXXi& AgeMatrix
+//     ) {
+//         log_file << "Starting migration generation...\n";
+        
+//         int start_pos = 0;
+        
+//         // Process each year starting from year 1
+//         for (int year = 1; year < NUM_YEARS; ++year) {
+//             ArrayXi immigrants_per_age = MigNumMat.col(year);
+//             int total_immigrants = immigrants_per_age.sum();
+            
+//             // Initialize matrices with -1 for non-immigrant status
+//             ExistingMatrix.block(start_pos, 0, total_immigrants, year).setConstant(-1);
+//             AgeMatrix.block(start_pos, 0, total_immigrants, year).setConstant(-1);
+//             std::cout << "step 1" << std::endl;
+//             // Process each age group
+//             for (int age = 0; age < NUM_AGE_GROUPS; ++age) {
+//                 int num_immigrants = immigrants_per_age[age];
+//                 if (num_immigrants == 0) continue;
+                
+//                 // Calculate adjusted index for disappearance rates
+//                 int disappear_idx = age - year + 33;
+//                 if (disappear_idx < 0 || disappear_idx >= disappear_mat[index].rows()) {
+//                     log_file << "Skipping invalid disappearance index: " << disappear_idx << "\n";
+//                     continue;
+//                 }
+//                 if (age == 0){
+//                     std::cout << "step 1.5" << std::endl;
+//                 }
+
+//                 // Get disappearance rates for this group
+//                 ArrayXf rates = disappear_mat[index].row(disappear_idx).segment(year, NUM_YEARS - year);
+//                 ArrayXXf replicated_rates = rates.replicate(1, num_immigrants).transpose();
+//                 if (age == 0){
+//                     std::cout << "step 1.7" << std::endl;
+//                 }
+//                 // Generate survival status based on disappearance rates
+//                 ArrayXXf random_values = generateRandomValues(num_immigrants, NUM_YEARS - year);
+//                 ArrayXXi survival_status = (replicated_rates <= random_values).cast<int>();
+                
+//                 updateSurvivalStatus(survival_status);
+
+//                 // Update existence status
+//                 ExistingMatrix.block(start_pos, year , num_immigrants, NUM_YEARS - year ) = survival_status;
+//                 if (age == 0){
+//                     std::cout << "step 2" << std::endl;
+//                 }
+                
+//                 // Generate and update age matrix
+//                 ArrayXXi age_block = ArrayXXi::Zero(num_immigrants, NUM_YEARS - year);
+//                 for (int t = 0; t < NUM_YEARS - year; ++t) {
+//                     age_block.col(t).setConstant(age + t);
+//                 }
+                
+//                 // Apply age only where person exists (not dead)
+//                 age_block = (survival_status.array() > 0).select(age_block, -1);
+//                 AgeMatrix.block(start_pos, year , num_immigrants, NUM_YEARS - year) = age_block;
+//                 if (age == 0){
+//                     std::cout << "step 2.2" << std::endl;
+//                 }
+//                 start_pos += num_immigrants;
+//             }
+            
+//             log_file << "Processed year " << year << ", total immigrants: " << total_immigrants << "\n";
+//         }
+        
+//         // Write final age matrix to log file
+//         log_file << "\nFinal Age Matrix:\n" << AgeMatrix << "\n";
+//     }
+// };
+
+// int main() {
+//     try {
+//         MigrationSimulator simulator("test/imm.txt");
+        
+//         // Load data
+//         DataLoader dataLoader(100);
+//         if (!dataLoader.readMorEigMat("./data/bin/mig_disappear.bin")) {
+//             throw std::runtime_error("Failed to read mortality data");
+//         }
+        
+//         // Initialize matrices
+//         ArrayXXi migra_mat = ArrayXXi::Constant(86, 34, 10);
+//         dataLoader.readDisEigMat("./data/bin/disappear.bin");
+//         vector<ArrayXXf> disappear_mat = dataLoader.disappear_mat;
+        
+//         // ArrayXf rates = disappear_mat[index];
+        
+//         // Calculate total size needed based on migration matrix
+//         int total_immigrants = migra_mat.sum();
+//         ArrayXXi ExistingMatrix = ArrayXXi::Zero(total_immigrants, 34);
+//         ArrayXXi AgeMatrix = ArrayXXi::Zero(total_immigrants, 34);
+
+//         std::cout << "step 0" << std::endl;
+//        // Generate migration data
+//         simulator.generateMigration(migra_mat, disappear_mat, 0, ExistingMatrix, AgeMatrix);
+        
+
+//         return 0;
+//     } catch (const std::exception& e) {
+//         std::cerr << "Error: " << e.what() << std::endl;
+//         return 1;
+//     }
+// }

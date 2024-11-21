@@ -25,11 +25,13 @@ public:
     DataLoader& operator=(const DataLoader&) = delete;
 
     // Methods to read data from files
-    bool readPopuMat(const std::string& filename);
-    bool readMorEigMat(const std::string& filename);
-    bool readFerMat(const std::string& filename);
-    bool readDisEigMat(const std::string& filename);
-    bool readImmiEigMat(const std::string& filename);
+    // Methods to read data from files
+    bool readAllData(); // New method to read all data using default paths
+    bool readPopuMat(const std::string& filename = "./data/bin/result_matrix_data.bin");
+    bool readMorEigMat(const std::string& filename = "./data/bin/mig_disappear.bin");
+    bool readFerMat(const std::string& filename = "./data/bin/AESFR_matrix_combine.bin");
+    bool readDisEigMat(const std::string& filename = "./data/bin/disappear.bin");
+    bool readImmiEigMat(const std::string& filename = "./data/bin/migration_in.bin");
     
     // Public member variables
     std::unique_ptr<float[]> popu_mat;  // [8][86][35]

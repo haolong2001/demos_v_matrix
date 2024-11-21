@@ -27,6 +27,17 @@ DataLoader::DataLoader(int mockScale)
     }
 }
 
+bool DataLoader::readAllData() {
+    bool success = true;
+    
+    success &= readPopuMat();
+    success &= readMorEigMat();
+    success &= readDisEigMat();
+    success &= readFerMat();
+    success &= readImmiEigMat();
+    
+    return success;
+}
 
 bool DataLoader::readPopuMat(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
@@ -142,7 +153,7 @@ bool DataLoader::readDisEigMat(const std::string& filename) {
             return false;
         }
 
-    std::cout << "step 1" << std::endl;
+    // std::cout << "step 1" << std::endl;
     // Reshape into 8 x 119 x 34 format
     for (size_t i = 0; i < 8; ++i) {
         for (size_t row = 0; row < 119; ++row) {

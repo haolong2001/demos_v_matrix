@@ -32,7 +32,7 @@ ArrayXXi PopulationSimulator::generateDeathMatrix(
         // Initialize matrices
         ArrayXXf prob_mat(total_population, NUM_YEARS);
         
-        std::cout << "Step 2: okay" << std::endl;
+        // std::cout << "Step 2: okay" << std::endl;
         // Fill probability matrix
         int current_row = 0;
         for (int age = 0; age < num_by_ages.size(); ++age) {
@@ -44,7 +44,7 @@ ArrayXXi PopulationSimulator::generateDeathMatrix(
                 current_row += num_people;
             }
         }
-        std::cout <<"step 3 okay" << endl;
+        // std::cout <<"step 3 okay" << endl;
         // Generate random matrix and compare with probability matrix
         ArrayXXf rand_matrix = Rand::balanced<ArrayXXf>(total_population, NUM_YEARS, urng, 0, 1);
         // 1 means alive; 0 means death
@@ -82,7 +82,8 @@ ArrayXXi PopulationSimulator::generateDeathMatrix(
         
         int total_population = num_by_ages.sum();
         ArrayXXi age_matrix = ArrayXXi::Zero(total_population, NUM_YEARS);
-        
+        //std::cout <<"step 4 okay" << endl;
+
         // Create initial age vector
         VectorXi initial_ages(total_population);
         int current_index = 0;
@@ -90,15 +91,23 @@ ArrayXXi PopulationSimulator::generateDeathMatrix(
             initial_ages.segment(current_index, num_by_ages[age]).setConstant(age);
             current_index += num_by_ages[age];
         }
-        
+        //std::cout <<"step 5 okay" << endl;
         // Generate year offsets
         ArrayXi year_offsets = ArrayXi::LinSpaced(NUM_YEARS, 0, NUM_YEARS - 1);
         
-        // Fill age matrix
-        for (int i = 0; i < total_population; ++i) {
-            age_matrix.row(i) = (initial_ages[i] + year_offsets) * existing_matrix.row(i);
+       for (int i = 0; i < total_population; ++i) {
+        // Calculate ages normally
+
+        ArrayXi ages = initial_ages[i] + year_offsets;
+        // Apply the existing matrix mask, but replace 0s with -1s
+        for (int j = 0; j < NUM_YEARS; ++j) {
+            age_matrix(i, j) = existing_matrix(i, j) ? ages[j] : -1;
         }
-        
+    }
+        //std::cout <<"step 6 okay" << endl;
         return age_matrix;
     }
+
+
+   
 
