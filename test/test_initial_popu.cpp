@@ -135,16 +135,16 @@ int main() {
         );
         // from migration to fertility 
 
-        log_file << " migration age matrix:\n" << mig_age_matrix << "\n\n";
+        // log_file << " migration age matrix:\n" << mig_age_matrix << "\n\n";
 
        
         // fertility 
-
-
-
-
-        /////////
+        std::cout << "step 1" << std::endl;
+            if (log_file.good()) {
+        std::cout << "Stream is valid" << std::endl;
+    }
         log_file << " fertility matrix by age group:\n";
+        std::cout << "step 2" << std::endl;
         float fertility_rates[12][71][35];  // 1980 - 2050
         copyToArray(dataLoader.fer_mat, fertility_rates);
         log_file << " fertility rates matrix:\n" << fertility_rates[0] << "\n\n";
@@ -175,43 +175,54 @@ int main() {
         
 
          // 1990 - 2023 
-        Eigen::ArrayXi exising_births = mig_births + births;
+        Eigen::ArrayXi existing_births = mig_births + births;
 
-        const int birth_start = 1991;
-        const int simulationEndYear = 2023;
-        initialization 
+        log_file << " test births from births\n"  << "\n\n";
+
+        log_file << " test births from births\n"  << "\n\n";
+        int birth_start = 1991;
+        // const int simulationEndYear = 2023;
+        
+        std::cout << "step 3" << std::endl;
         Eigen::ArrayXi newnewborn = existing_births;
         while(birth_start <= simulationEndYear ) {
 
-            Eigen::ArrayXf males = newnewborn.cast<float>() * 1.06f / 2.06f;
-            Eigen::ArrayXf females = newnewborn.cast<float>() * 1.0f / 2.06f;
+            Eigen::ArrayXi males_int, females_int;
+            fertility.generateNewbornData(newnewborn, males_int, females_int);
 
-            Eigen::ArrayXi males_int = males.cast<int>();
-            Eigen::ArrayXi females_int = females.cast<int>();
-
+             std::cout << "step 3.5" << std::endl;
+            log_file << " year " <<  birth_start << "\n\n";
+            log_file << " male births from births" << males_int  << "\n\n";
+            log_file << " female births from births\n"  <<  females_int << "\n\n";
+            log_file.flush(); // force to print the log file, otherwise, may stuck in the buffet area
             // Generate age matrices for males and females
-            ArrayXXi malebirthAge = fertility.generateAgefromBirth(1,
-                males_int,
-                dataLoader.disappear_mat
-                );
-            ArrayXXi femalebirthAge = fertility.generateAgefromBirth(1,
-            females_int,
-            dataLoader.disappear_mat
+            ArrayXXi malebirthAge = fertility.generateAgefromBirth(
+                1, males_int, dataLoader.disappear_mat);
+            ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
+                1, females_int, dataLoader.disappear_mat);
+         std::cout << "step 3.7" << std::endl;
+            newnewborn = fertility.calculateNewborns(
+                gen_idx,
+                femalebirthAge,
+                birth_start
             );
-            newnewborn = femalebirthAge[]
-
+            std::cout << "step 3.9" << std::endl;
+            log_file << " birth births from births\n"  <<  newnewborn << "\n\n";
 
             birth_start += 15;
 
             // write to logging file
-
-
-
-
-
         }
-        // Eigen::ArrayXXi BirthAgeMatrix(existing_births.sum(),34);
+        std::cout << "step 4" << std::endl;
+        // Handle remaining newborn processing
+        Eigen::ArrayXi males_int, females_int;
+        fertility.generateNewbornData(newnewborn, males_int, females_int);
+        ArrayXXi malebirthAge = fertility.generateAgefromBirth(
+            1, males_int, dataLoader.disappear_mat);
+        ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
+            1, females_int, dataLoader.disappear_mat);
 
+        
 
 
         // calculate the expectation

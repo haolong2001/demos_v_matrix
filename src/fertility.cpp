@@ -170,7 +170,7 @@ Eigen::ArrayXi Fertility::GenerateBirth(int index,
       }
       //std::cout << "input " << j << " " << age << " "<< std::endl;
       //std::cout << "vale " << MapFertilityRate(index, j, age) << std::endl;
-      fertility_matrix(i, j) = MapFertilityRate(index, j, age);
+      fertility_matrix(i, j) = MapFertilityRate(index / 2, j, age);
       //
       
       // 
@@ -264,7 +264,7 @@ Eigen::ArrayXi Fertility::migration_births(int index,
                 if (age == -1 || age > 49) {
                     break;
                 }
-                fertility_matrix(i, j) = MapFertilityRate(index, j, age) ;
+                fertility_matrix(i, j) = MapFertilityRate(index /2, j, age) ;
                 // 
                 // std::cout << "input " << j << " " << age << " "<< std::endl;
                 // std::cout << "vale " << MapFertilityRate(index, j, age) << std::endl;
@@ -331,9 +331,9 @@ Eigen::ArrayXXi Fertility::generateAgefromBirth(
         //1 means okay, 0 means death; logic here a bit strange
         ArrayXXi survival_status = (random_values >= replicated_rates).cast<int>();
 
-        std::cout <<survival_status << std::endl;
+        // std::cout <<survival_status << std::endl;
         Utils::updateSurvivalStatus(survival_status);
-        std::cout << "updated" << std::endl <<  survival_status << std::endl;
+        // std::cout << "updated" << std::endl <<  survival_status << std::endl;
 
         ArrayXXi age_block = ArrayXXi::Zero(num_births, NUM_YEARS - year);
             for (int t = 0; t < NUM_YEARS - year; ++t) {
@@ -348,6 +348,59 @@ Eigen::ArrayXXi Fertility::generateAgefromBirth(
     }
 
     return AgeMatrix;
+}
+
+
+Eigen::ArrayXi Fertility::calculateNewborns(
+  int index,
+  const ArrayXXi& femalebirthAge, 
+  int birth_start
+){
+  int nrows = femalebirthAge.rows();
+
+  // suppose start 1991, then we wish to have 1991 + 15 till 2023
+  int ncols = simulationEndYear - (birth_start + childbearingStartAge) + 1;
+
+    // Get the age columns starting from childbearing age
+    int startCol = 34 - ncols;
+    int ageCols = ncols;
+  
+  // Early return if no valid columns
+    if (ageCols <= 0) {
+        return ArrayXi();  // Return empty array
+    }
+  
+  // Extract relevant block of ages
+  ArrayXXi Newborn = femalebirthAge.block(0, startCol, nrows, ageCols);
+
+  // Initialize fertility matrix
+    ArrayXXf ferferMat = ArrayXXf::Zero(nrows, ageCols);
+    for (int col = 0; col < Newborn.cols(); ++col) {
+        // std::cout << "col succes" << col << std::endl;
+        for (int row = 0; row < Newborn.rows(); ++row) {
+            int age = Newborn(row, col);
+            int year_idx = birth_start + 15 + col - 1990;
+            ferferMat(row, col) = MapFertilityRate(index/2, year_idx, age);
+        }
+    }
+
+  Eigen::ArrayXXf random_values = Utils::generateRandomValues(nrows, ageCols);
+        
+
+  // Calculate births
+    ArrayXXi birthMat = (ferferMat.array() > random_values.array()).cast<int>();
+    return birthMat.colwise().sum();
+  
+
+}
+
+void Fertility::generateNewbornData(const Eigen::ArrayXi& newnewborn,
+                         Eigen::ArrayXi& males_int,
+                         Eigen::ArrayXi& females_int) {
+    Eigen::ArrayXf males = newnewborn.cast<float>() * 1.06f / 2.06f;
+    Eigen::ArrayXf females = newnewborn.cast<float>() * 1.0f / 2.06f;
+    males_int = males.cast<int>();
+    females_int = females.cast<int>();
 }
 
 

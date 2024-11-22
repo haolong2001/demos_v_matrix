@@ -69,7 +69,8 @@ ArrayXXi MigrationSimulator::generateMigration(
             // Get disappearance rates and generate survival status
             ArrayXf rates = disappear_mat[index].row(disappear_idx).segment(year, NUM_YEARS - year);
             ArrayXXf replicated_rates = rates.replicate(1, num_immigrants).transpose();
-            ArrayXXi survival_status = (generateRandomValues(num_immigrants, NUM_YEARS - year) <= replicated_rates).cast<int>();
+            // if rand < rate, then death, we mark 0 
+            ArrayXXi survival_status = (generateRandomValues(num_immigrants, NUM_YEARS - year) > replicated_rates).cast<int>();
             
             updateSurvivalStatus(survival_status);
             ExistingMatrix.block(start_pos, year, num_immigrants, NUM_YEARS - year) = survival_status;

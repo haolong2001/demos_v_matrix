@@ -33,6 +33,16 @@ class Fertility {
     const std::vector<ArrayXXf>& disappear_mat
     );
 
+    Eigen::ArrayXi calculateNewborns(
+    int index,
+    const ArrayXXi& femalebirthAge, 
+    int birth_start
+    );
+
+    void generateNewbornData(const Eigen::ArrayXi& newnewborn,
+                         Eigen::ArrayXi& males_int,
+                         Eigen::ArrayXi& females_int);
+
 
  private:
   

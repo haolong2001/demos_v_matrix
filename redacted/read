@@ -1,0 +1,173 @@
+#include <H5Cpp.h>
+#include <Eigen/Dense>
+#include <vector>
+#include <string>
+#include <stdexcept>
+
+// Utility class for HDF5 operations with Eigen matrices
+class HDF5MatrixIO {
+public:
+    // Save vector of matrices to HDF5 file
+    static void saveMatrices(const std::vector<Eigen::MatrixXd>& matrices, 
+                           const std::string& filename,
+                           const std::string& group_name = "/matrices") {
+        try {
+            // Create a new file or truncate existing one
+            H5::H5File file(filename, H5F_ACC_TRUNC);
+
+            // Create a group to store matrices
+            H5::Group group(file.createGroup(group_name));
+
+            // Store each matrix
+            for (size_t i = 0; i < matrices.size(); ++i) {
+                const Eigen::MatrixXd& matrix = matrices[i];
+                std::string dataset_name = "matrix_" + std::to_string(i);
+                saveMatrix(group, dataset_name, matrix);
+            }
+
+            // Store the number of matrices as an attribute
+            H5::DataSpace attr_space(H5S_SCALAR);
+            H5::Attribute attr = group.createAttribute("num_matrices", 
+                                                     H5::PredType::NATIVE_HSIZE, 
+                                                     attr_space);
+            hsize_t num_matrices = matrices.size();
+            attr.write(H5::PredType::NATIVE_HSIZE, &num_matrices);
+
+        } catch (const H5::Exception& e) {
+            throw std::runtime_error("HDF5 error: " + std::string(e.getCDetailMsg()));
+        }
+    }
+
+    // Read matrices from HDF5 file
+    static std::vector<Eigen::MatrixXd> readMatrices(const std::string& filename,
+                                                    const std::string& group_name = "/matrices") {
+        try {
+            // Open the file
+            H5::H5File file(filename, H5F_ACC_RDONLY);
+            H5::Group group(file.openGroup(group_name));
+
+            // Read number of matrices from attribute
+            H5::Attribute attr = group.openAttribute("num_matrices");
+            hsize_t num_matrices;
+            attr.read(H5::PredType::NATIVE_HSIZE, &num_matrices);
+
+            // Read each matrix
+            std::vector<Eigen::MatrixXd> matrices;
+            matrices.reserve(num_matrices);
+
+            for (hsize_t i = 0; i < num_matrices; ++i) {
+                std::string dataset_name = "matrix_" + std::to_string(i);
+                matrices.push_back(readMatrix(group, dataset_name));
+            }
+
+            return matrices;
+
+        } catch (const H5::Exception& e) {
+            throw std::runtime_error("HDF5 error: " + std::string(e.getCDetailMsg()));
+        }
+    }
+
+    // Save a single matrix with metadata
+    static void saveMatrixWithMetadata(const Eigen::MatrixXd& matrix,
+                                     const std::string& filename,
+                                     const std::string& dataset_name,
+                                     const std::map<std::string, std::string>& metadata = {}) {
+        try {
+            H5::H5File file(filename, H5F_ACC_TRUNC);
+            saveMatrix(file, dataset_name, matrix);
+
+            // Add metadata as attributes
+            H5::DataSet dataset = file.openDataSet(dataset_name);
+            H5::DataSpace attr_space(H5S_SCALAR);
+            H5::StrType str_type(H5::PredType::C_S1, H5T_VARIABLE);
+
+            for (const auto& [key, value] : metadata) {
+                H5::Attribute attr = dataset.createAttribute(key, str_type, attr_space);
+                attr.write(str_type, value);
+            }
+
+        } catch (const H5::Exception& e) {
+            throw std::runtime_error("HDF5 error: " + std::string(e.getCDetailMsg()));
+        }
+    }
+
+private:
+    // Helper function to save a single matrix
+    static void saveMatrix(H5::CommonFG& location, const std::string& dataset_name, 
+                         const Eigen::MatrixXd& matrix) {
+        // Create dataspace
+        hsize_t dims[2] = {static_cast<hsize_t>(matrix.rows()),
+                          static_cast<hsize_t>(matrix.cols())};
+        H5::DataSpace dataspace(2, dims);
+
+        // Create dataset
+        H5::DataSet dataset = location.createDataSet(dataset_name, 
+                                                   H5::PredType::NATIVE_DOUBLE, 
+                                                   dataspace);
+
+        // Write data
+        dataset.write(matrix.data(), H5::PredType::NATIVE_DOUBLE);
+
+        // Save dimensions as attributes
+        H5::DataSpace attr_space(H5S_SCALAR);
+        H5::Attribute rows_attr = dataset.createAttribute("rows", 
+                                                        H5::PredType::NATIVE_HSIZE, 
+                                                        attr_space);
+        H5::Attribute cols_attr = dataset.createAttribute("cols", 
+                                                        H5::PredType::NATIVE_HSIZE, 
+                                                        attr_space);
+        rows_attr.write(H5::PredType::NATIVE_HSIZE, &dims[0]);
+        cols_attr.write(H5::PredType::NATIVE_HSIZE, &dims[1]);
+    }
+
+    // Helper function to read a single matrix
+    static Eigen::MatrixXd readMatrix(H5::CommonFG& location, const std::string& dataset_name) {
+        H5::DataSet dataset = location.openDataSet(dataset_name);
+        H5::DataSpace dataspace = dataset.getSpace();
+
+        // Read dimensions
+        hsize_t dims[2];
+        dataspace.getSimpleExtentDims(dims);
+
+        // Create matrix and read data
+        Eigen::MatrixXd matrix(dims[0], dims[1]);
+        dataset.read(matrix.data(), H5::PredType::NATIVE_DOUBLE);
+
+        return matrix;
+    }
+};
+
+// Example usage
+int main() {
+    // Create sample matrices
+    std::vector<Eigen::MatrixXd> matrices;
+    for (int i = 0; i < 8; ++i) {
+        matrices.push_back(Eigen::MatrixXd::Random(100, 100));
+    }
+
+    try {
+        // Save all matrices
+        HDF5MatrixIO::saveMatrices(matrices, "matrices.h5");
+
+        // Save a single matrix with metadata
+        std::map<std::string, std::string> metadata = {
+            {"description", "Sample matrix"},
+            {"date", "2024-01-01"},
+            {"author", "User"}
+        };
+        HDF5MatrixIO::saveMatrixWithMetadata(matrices[0], 
+                                           "single_matrix.h5",
+                                           "matrix_with_metadata",
+                                           metadata);
+
+        // Read matrices back
+        auto loaded_matrices = HDF5MatrixIO::readMatrices("matrices.h5");
+        std::cout << "Successfully loaded " << loaded_matrices.size() << " matrices" << std::endl;
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+
+    return 0;
+}
