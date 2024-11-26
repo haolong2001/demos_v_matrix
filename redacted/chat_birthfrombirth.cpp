@@ -101,7 +101,7 @@ void simulatePopulation(const ArrayXi& births, int eth_gen, std::vector<std::vec
         std::cout << "newnewborn" << newnewborn << endl;
         // Calculate new male and female births
         Eigen::ArrayXf males = newnewborn.cast<float>() * 1.06f / 2.06f;
-        Eigen::ArrayXf females = newnewborn.cast<float>() * 1.0f / 2.0f;
+        Eigen::ArrayXf females = newnewborn.cast<float>() * 1.0f / 2.06f;
 
         males_int = males.cast<int>();
         females_int = females.cast<int>();

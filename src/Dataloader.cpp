@@ -229,7 +229,10 @@ bool DataLoader::readImmiEigMat(const std::string& filename) {
     //         migration_in[i].data()[j] = temp_buffer[j] / mockScale;
     //    }
     for (size_t i = 0; i < 8; ++i) {
-        for (size_t row = 0; row < 86; ++row) {
+        for (size_t row = 0; row < 51; ++row) {
+
+            // ignore people larger than 50; set ther limit to 51 years old 
+            
             for (size_t col = 0; col < 34; ++col) {
                 size_t idx = i * (86 * 34) + row * 34 + col;
                 // debug

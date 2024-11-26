@@ -6,6 +6,15 @@
 #include <random>
 #include "global.h"
 
+using namespace Eigen;
+
+void writeMatrixToLog(std::ofstream& log_file, 
+                     const std::string& matrix_name, 
+                     const ArrayXXi& matrix);
+
+void writeMatrixToLog(std::ofstream& log_file, 
+                     const std::string& matrix_name, 
+                     const ArrayXXf& matrix);             
 
 class Utils {
 public:

@@ -1,4 +1,5 @@
 #include "migration.h"
+#include "utils.h"
 
 using namespace Eigen;
 using namespace std;
@@ -52,9 +53,15 @@ ArrayXXi MigrationSimulator::generateMigration(
     int start_pos = 0;
     
     // Process each year starting from year 1
+
+    string popu_filename = "output/migration_mat" + to_string(index) + "_popu.txt";
+    ofstream mig_popu_file(popu_filename);
+    mig_popu_file << "disappear_mat Matrix:\n" << disappear_mat[index] << endl;
+
     for (int year = 1; year < NUM_YEARS; ++year) {
         ArrayXi immigrants_per_age = MigNumMat.col(year);
-        
+
+        // 
         // Process each age group
         for (int age = 0; age < NUM_AGE_GROUPS; ++age) {
             int num_immigrants = immigrants_per_age[age];
@@ -73,6 +80,14 @@ ArrayXXi MigrationSimulator::generateMigration(
             ArrayXXi survival_status = (generateRandomValues(num_immigrants, NUM_YEARS - year) > replicated_rates).cast<int>();
             
             updateSurvivalStatus(survival_status);
+            // logging
+            
+            // 
+            mig_popu_file << "age \n" << age << endl;
+            mig_popu_file << "death rates Matrix:\n" << replicated_rates << endl;
+
+            mig_popu_file << "Survival Matrix:\n" << survival_status << endl;
+
             ExistingMatrix.block(start_pos, year, num_immigrants, NUM_YEARS - year) = survival_status;
             
             // Generate age matrix
@@ -86,10 +101,21 @@ ArrayXXi MigrationSimulator::generateMigration(
             AgeMatrix.block(start_pos, year, num_immigrants, NUM_YEARS - year) = age_block;
             
             start_pos += num_immigrants;
-        }
-    }
+        } // int age 
+        
+
+    } // int year
+
+    mig_popu_file << "expected length:\n" << MigNumMat << endl;
+    mig_popu_file << "Survival Matrix:\n" << ExistingMatrix << endl;
+    mig_popu_file.flush();
+    // mig_popu_file << "Age Matrix:\n" << AgeMatrix << endl;
+    writeMatrixToLog(mig_popu_file, "Age Matrix", AgeMatrix);
+
     
     return AgeMatrix;
+
+
 
 
 }

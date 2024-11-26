@@ -31,7 +31,7 @@ public:
     bool readMorEigMat(const std::string& filename = "./data/bin/mig_disappear.bin");
     bool readFerMat(const std::string& filename = "./data/bin/AESFR_matrix_combine.bin");
     bool readDisEigMat(const std::string& filename = "./data/bin/disappear.bin");
-    bool readImmiEigMat(const std::string& filename = "./data/bin/migration_in.bin");
+    bool readImmiEigMat(const std::string& filename = "./data/bin/migration_in_alter.bin");
     
     // Public member variables
     std::unique_ptr<float[]> popu_mat;  // [8][86][35]

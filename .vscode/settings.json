@@ -61,6 +61,7 @@
         "unordered_map": "cpp",
         "variant": "cpp",
         "eigenrand": "cpp",
-        "dense": "cpp"
+        "dense": "cpp",
+        "__memory": "cpp"
     }
 }

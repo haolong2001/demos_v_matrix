@@ -1,7 +1,29 @@
 
 
-
+#include <iostream>
+#include <fstream>
 #include "utils.h"
+#include <Eigen/Dense>
+#include <ctime>
+
+using namespace Eigen;
+
+
+void writeMatrixToLog(std::ofstream& log_file, 
+                     const std::string& matrix_name, 
+                     const ArrayXXi& matrix) {
+    log_file << "\n=== " << matrix_name << " ===\n";
+    log_file << "Shape: " << matrix.rows() << " x " << matrix.cols() << "\n";
+    log_file << matrix << "\n\n";
+}
+
+void writeMatrixToLog(std::ofstream& log_file, 
+                     const std::string& matrix_name, 
+                     const ArrayXXf& matrix) {
+    log_file << "\n=== " << matrix_name << " ===\n";
+    log_file << "Shape: " << matrix.rows() << " x " << matrix.cols() << "\n";
+    log_file << matrix << "\n\n";
+}
 
 
 Eigen::ArrayXXf Utils::generateRandomValues(int rows, int cols) {

@@ -212,8 +212,9 @@ Eigen::ArrayXi Fertility::GenerateBirth(int index,
 Eigen::ArrayXi Fertility::migration_births(int index, 
                         const Eigen::ArrayXXi& age_matrix,
                         const Eigen::ArrayXXi& migrat_mat) {
-    std::string log_filename = "test/mig_fer_log.txt";
-    std::ofstream log_mig(log_filename, std::ios::out | std::ios::trunc);
+                          
+    // std::string log_filename = "test/mig_fer_log.txt";
+    // std::ofstream log_mig(log_filename, std::ios::out | std::ios::trunc);
     
     // Initialize fertility matrix
     Eigen::ArrayXXf fertility_matrix = Eigen::ArrayXXf::Zero(age_matrix.rows(), 
@@ -233,11 +234,11 @@ Eigen::ArrayXi Fertility::migration_births(int index,
         boundaries.push_back(sum);  // Changed to push sum instead of val
     }
     // Write boundaries to log
-    log_mig << "Boundaries: ";
-    for (const auto& b : boundaries) {
-        log_mig << b << " ";
-    }
-    log_mig << "\n\n";
+    // log_mig << "Boundaries: ";
+    // for (const auto& b : boundaries) {
+    //     log_mig << b << " ";
+    // }
+    // log_mig << "\n\n";
 
     
     // Calculate fertility rates
@@ -273,11 +274,11 @@ Eigen::ArrayXi Fertility::migration_births(int index,
     }
     // log_mig << "fertility_matrix"<< "\n";
     // log_mig << fertility_matrix<< "\n";
-    writeMatrixToLog(
-        log_mig,
-        "migration_fertility",
-        fertility_matrix
-    );
+    // writeMatrixToLog(
+    //     log_mig,
+    //     "migration_fertility",
+    //     fertility_matrix
+    // );
     
     // Generate random matrix and compare
     Eigen::ArrayXXf random_matrix = Eigen::ArrayXXf::Zero(age_matrix.rows(), 

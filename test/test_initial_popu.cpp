@@ -54,15 +54,13 @@ int main() {
     // Create log file with timestamp
     std::string log_filename = "test/simulation_log.txt";
     std::ofstream log_file(log_filename, std::ios::out | std::ios::trunc);
- 
-    
+
     if (!log_file.is_open()) {
         std::cerr << "Failed to open log file!" << std::endl;
         return 1;
     }
 
     // Log simulation parameters
-    
     log_file << "=== Simulation Parameters ===\n";
     log_file << "Start time: " << getCurrentTimestamp() << "\n";
     log_file << "End year: 2023\n";
@@ -70,15 +68,7 @@ int main() {
 
     try {
         PopulationSimulator simulator;
-
-        // Create sample population distribution
-        
-        
-
-        // read sample files 
-        DataLoader dataLoader(400);
-
-
+        DataLoader dataLoader(200);
         if (!dataLoader.readAllData()) {
         std::cerr << "Failed to read data files" << std::endl;
         return -1;
@@ -87,8 +77,6 @@ int main() {
 
         log_file << "=== reading finished  ===\n";
         log_file.flush();
-        
-
         log_file << "=== Mortality Rates ===\n";
         log_file.flush();
         log_file << " mortality rates by age group:\n";
@@ -101,48 +89,44 @@ int main() {
         // // Generate death and existing matrices
         // log_file << "Generating death and existing matrices...\n";
 
-        VectorXi num_by_ages(86);  // Sample with 86 age groups
 
+        VectorXi num_by_ages(86);  // Sample with 86 age groups
         int gen_idx = 1;
         num_by_ages = dataLoader.mock_popu_mat[gen_idx].col(0);
 
         log_file << "=== Initial Population Distribution ===\n";
-        log_file << "Age groups (0-4):\n" << num_by_ages << "\n\n";
+        log_file << "Age groups (0-4):\n" << num_by_ages.transpose() << "\n\n";
         log_file.flush();
 
         // check female
         ArrayXXi death_matrix = simulator.generateDeathMatrix(
             num_by_ages, gen_idx, mock_mortality);
-        
         writeMatrixToLog(log_file, "Death Matrix", death_matrix);
-
         // // Generate age matrix
         // log_file << "Generating age matrix...\n";
         ArrayXXi age_matrix = simulator.generateAgeMatrix(num_by_ages, death_matrix);
-        
         writeMatrixToLog(log_file, "Age Matrix", age_matrix);
 
         // migration here 
-        int total_immigrants = dataLoader.migration_in[gen_idx].sum();
-        ArrayXXi ExistingMatrix = ArrayXXi::Zero(total_immigrants, 34);
-        ArrayXXi AgeMatrix = ArrayXXi::Zero(total_immigrants, 34);
+        // int total_immigrants = dataLoader.migration_in[gen_idx].sum();
+        // ArrayXXi ExistingMatrix = ArrayXXi::Zero(total_immigrants, 34);
+        // ArrayXXi AgeMatrix = ArrayXXi::Zero(total_immigrants, 34);
+
         MigrationSimulator migra_simulator;
-        
         ArrayXXi mig_age_matrix = migra_simulator.generateMigration(
             dataLoader.migration_in[1],
             dataLoader.disappear_mat,
             1
         );
         // from migration to fertility 
-
         // log_file << " migration age matrix:\n" << mig_age_matrix << "\n\n";
-
-       
         // fertility 
         std::cout << "step 1" << std::endl;
             if (log_file.good()) {
         std::cout << "Stream is valid" << std::endl;
-    }
+        }
+
+        // fertility 
         log_file << " fertility matrix by age group:\n";
         std::cout << "step 2" << std::endl;
         float fertility_rates[12][71][35];  // 1980 - 2050
@@ -151,14 +135,9 @@ int main() {
 
         demographic::Fertility fertility(fertility_rates);
         // test fertility matrix 
-        
-
-        std::cout << fertility.MapFertilityRate(0,18,30) << endl;
+        // std::cout << fertility.MapFertilityRate(0,18,30) << endl;
         // female
-
-
-        Eigen::ArrayXi births = fertility.GenerateBirth(0, age_matrix);
-
+        Eigen::ArrayXi births = fertility.GenerateBirth(1, age_matrix);
 
         // migration
         Eigen::ArrayXi mig_births = fertility.migration_births(gen_idx, 
@@ -166,8 +145,6 @@ int main() {
                                             dataLoader.migration_in[1]);
 
         log_file << " migration births by age group:\n" << mig_births.transpose() << "\n\n";
-
-        
         log_file << " test birth age matrix\n"  << "\n\n";
         
         
@@ -177,13 +154,11 @@ int main() {
          // 1990 - 2023 
         Eigen::ArrayXi existing_births = mig_births + births;
 
-        log_file << " test births from births\n"  << "\n\n";
 
         log_file << " test births from births\n"  << "\n\n";
         int birth_start = 1991;
         // const int simulationEndYear = 2023;
-        
-        std::cout << "step 3" << std::endl;
+ 
         Eigen::ArrayXi newnewborn = existing_births;
         while(birth_start <= simulationEndYear ) {
 
@@ -191,24 +166,37 @@ int main() {
             fertility.generateNewbornData(newnewborn, males_int, females_int);
 
              std::cout << "step 3.5" << std::endl;
+
             log_file << " year " <<  birth_start << "\n\n";
-            log_file << " male births from births" << males_int  << "\n\n";
-            log_file << " female births from births\n"  <<  females_int << "\n\n";
+            log_file << " male births from births" << males_int.transpose()  << "\n\n";
+            log_file << " female births from births\n"  <<  females_int.transpose() << "\n\n";
+            
+            // calculate expectation
+
+
+            
             log_file.flush(); // force to print the log file, otherwise, may stuck in the buffet area
             // Generate age matrices for males and females
+
             ArrayXXi malebirthAge = fertility.generateAgefromBirth(
                 1, males_int, dataLoader.disappear_mat);
             ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
                 1, females_int, dataLoader.disappear_mat);
-         std::cout << "step 3.7" << std::endl;
+         // std::cout << "step 3.7" << std::endl;
             newnewborn = fertility.calculateNewborns(
                 gen_idx,
                 femalebirthAge,
                 birth_start
             );
+
+            // // Pad x2 with zeros to match the size of x1
+            ArrayXi x2_padded = ArrayXi::Zero(34); // Initialize with zeros
+            x2_padded.tail(newnewborn.size()) = newnewborn; // Copy x2 to the tail of the zero vector
+            existing_births =existing_births + x2_padded;
+
             std::cout << "step 3.9" << std::endl;
             log_file << " birth births from births\n"  <<  newnewborn << "\n\n";
-
+        // 
             birth_start += 15;
 
             // write to logging file
@@ -256,7 +244,9 @@ int main() {
 
         log_file << " birth mortality:\n" << mock_mortality[0].row(0) << "\n\n";
         // the total births should be both the boys and girls 
-        log_file << " fertility array by age group:\n" << births.transpose() << "\n\n";
+        
+        // the numbers match with each other 
+        log_file << " fertility array by age group:\n" <<( existing_births/2 ).transpose() << "\n\n";
         log_file << " true fertility array by age group:\n" << dataLoader.mock_popu_mat[0].row(0) << "\n\n";
 
 
