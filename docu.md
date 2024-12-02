@@ -70,3 +70,17 @@ clang++ -std=c++11 \
     src/migration.cpp\
     test/test_initial_popu.cpp \
     -o build/test_initial_popu
+
+
+
+
+clang++ -std=c++11 \    
+-Iinclude \
+src/deathages.cpp \
+src/DataLoader.cpp \
+src/fertility.cpp \
+src/migration.cpp \
+src/utils.cpp \
+src/validate.cpp \
+src/main_test.cpp \
+-o build/main_test2023
