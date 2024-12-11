@@ -193,13 +193,13 @@ int main() {
     ArrayXXi popu_mat;
 
     for (size_t i = 0; i < 8; ++i) {
-
         popu_mat = ArrayXXi::Zero(86, 34);
         int len = age_matrix_vec[i].size();
         for (size_t j = 0; j < len; ++j) {
             // popu_mat = ArrayXXi::Zero(86, 34);
             calculate_popu(age_matrix_vec[i][j], popu_mat);
         }
+
 
         string popu_filename = "test_out/age_matrix_" + to_string(i) + "_popu.txt";
         ofstream popu_file(popu_filename);
@@ -247,17 +247,22 @@ int main() {
 
             writeMatrixToLog(popu_file, "calibrated migration people matrix", popu_mat);
 
-
-
             popu_file.close();
-
-
-
-
             
-
         }
+        // 
+        ArrayXXi popu_2023 = mig_mat.col(33);
+        // approximation
+        
+        // 
 
+
+
+
+
+
+
+        // time calculate
         auto end = std::chrono::high_resolution_clock::now();
         // 
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
