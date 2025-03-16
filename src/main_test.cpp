@@ -193,6 +193,8 @@ int main() {
     ArrayXXi popu_mat;
 
     for (size_t i = 0; i < 8; ++i) {
+        // save migration matrix for further use 
+        
         popu_mat = ArrayXXi::Zero(86, 34);
         int len = age_matrix_vec[i].size();
         for (size_t j = 0; j < len; ++j) {
@@ -251,7 +253,7 @@ int main() {
             
         }
         // 
-        ArrayXXi popu_2023 = mig_mat.col(33);
+        // ArrayXXi popu_2023 = mig_mat.col(33);
         // approximation
         
         // 

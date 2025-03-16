@@ -27,10 +27,39 @@ void copyToArray(const std::unique_ptr<float[]>& fer_mat, float (&fertility_rate
     }
 }
 
+// time complexity o(n)
+ArrayXXi lazyUpdates(const ArrayXXi& mat) {
+    int rows = mat.rows();
+    int cols = mat.cols();
+
+    // Initialize the people_need matrix with zeros
+    ArrayXXi people_need = ArrayXXi::Zero(rows, cols);
+
+    // Traverse the matrix diagonally
+    for (int diag = 1; diag < rows + cols - 1; ++diag) {
+        for (int i = max(0, diag - cols + 1); i <= min(diag, rows - 1); ++i) {
+            int j = diag - i;
+
+            if (i > 0 && j > 0 && i <51) {
+                int diff = mat(i, j) - mat(i - 1, j - 1);
+                if (diff > 0) {
+                    people_need(i, j) = diff;
+                } else {
+                    people_need(i, j) = 0;
+                }
+            }
+        }
+    }
+
+    return people_need;
+}
+
+
 int main() {
-    try {
-        // Initialize DataLoader with mock scale
-        const int mockScale = 400;
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        const int mockScale = 20;
         DataLoader dataLoader(mockScale);
 
         if (!dataLoader.readAllData()) {
@@ -56,8 +85,8 @@ int main() {
         VectorXi num_by_ages;
 
         // Process each ethnic group
-        for (int i = 0; i < 2; ++i) {
-            cout << "use chn first " << i << endl;
+        for (int i = 0; i < 8; ++i) {
+            // cout << "use chn first " << i << endl;
             cout << "Processing ethnic group " << i << endl;
             
             // Process 1990 population
@@ -72,17 +101,6 @@ int main() {
             ));
             // print to logging file
 
-            // Process migration
-            ArrayXXi migra_mat = dataLoader.migration_in[i];
-            ArrayXXi mig_age_matrix = mig_simulator.generateMigration(
-                migra_mat, 
-                dataLoader.disappear_mat, 
-                i
-            );
-            
-            // Store migration result
-            age_matrix_vec[i].push_back(mig_age_matrix);
-
             // deal with fertility 
             // read the female index 
             if (i % 2){
@@ -91,11 +109,25 @@ int main() {
                 // the 1990 is calculated twice
                 births(0) = 0;
 
-                Eigen::ArrayXi mig_births = fertility.migration_births(i, 
-                                            mig_age_matrix,
-                                            dataLoader.migration_in[i]);
+                Eigen::ArrayXi existing_births = dataLoader.mock_popu_mat[i].row(0)
+                + dataLoader.mock_popu_mat[i-1].row(0)
+                ;
+                existing_births(0) = 0;
+
+
+                Eigen::ArrayXi males_int, females_int;
+                males_int = dataLoader.mock_popu_mat[i-1].leftCols(34).row(0);
+                females_int = dataLoader.mock_popu_mat[i].leftCols(34).row(0);
+                males_int(0) = 0;
+                females_int(0) = 0;
+
+                ArrayXXi malebirthAge = fertility.generateAgefromBirth(
+                        i, males_int, dataLoader.disappear_mat);
+                ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
+                        i, females_int, dataLoader.disappear_mat);
                 
-                Eigen::ArrayXi existing_births = mig_births + births;
+                age_matrix_vec[i-1].push_back(malebirthAge);
+                age_matrix_vec[i].push_back(femalebirthAge);
 
                 // std::cout << "mig births" << mig_births << std::endl;
                 // std::cout << "mig births size" << mig_births.size() << std::endl;
@@ -104,155 +136,158 @@ int main() {
                 // std::cout << " births size" << births.size() << std::endl;
 
 
-                int birth_start = 1991;
+                // int birth_start = 1991;
 
-                Eigen::ArrayXi newnewborn = existing_births;
+                // Eigen::ArrayXi newnewborn = existing_births;
 
-                while(birth_start <= simulationEndYear ) {
+                // while(birth_start <= simulationEndYear ) {
 
-                    Eigen::ArrayXi males_int, females_int;
-                    fertility.generateNewbornData(newnewborn, males_int, females_int);
+                //     Eigen::ArrayXi males_int, females_int;
+                //     fertility.generateNewbornData(newnewborn, males_int, females_int);
 
-                    // log_file.flush();
-                    // Generate age matrices for males and females
-                    ArrayXXi malebirthAge = fertility.generateAgefromBirth(
-                        i, males_int, dataLoader.disappear_mat);
-                    ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
-                        i, females_int, dataLoader.disappear_mat);
-
-
-                    age_matrix_vec[i-1].push_back(malebirthAge);
-                    age_matrix_vec[i].push_back(femalebirthAge);
-                    // logging 
+                //     // log_file.flush();
+                //     // Generate age matrices for males and females
+                //     ArrayXXi malebirthAge = fertility.generateAgefromBirth(
+                //         i, males_int, dataLoader.disappear_mat);
+                //     ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
+                //         i, females_int, dataLoader.disappear_mat);
 
 
-                    newnewborn = fertility.calculateNewborns(
-                        i,
-                        femalebirthAge,
-                        birth_start
-                    );
+                //     age_matrix_vec[i-1].push_back(malebirthAge);
+                //     age_matrix_vec[i].push_back(femalebirthAge);
+                //     // logging 
+
+
+                //     newnewborn = fertility.calculateNewborns(
+                //         i,
+                //         femalebirthAge,
+                //         birth_start
+                //     );
                     
-                    birth_start += 15;
+                //     birth_start += 15;
 
-                    // write to logging file
-                } // birth from birth
+                //     // write to logging file
+                // } // birth from birth
+
+
 
                 // last batch
-                Eigen::ArrayXi males_int, females_int;
-                fertility.generateNewbornData(newnewborn, males_int, females_int);
-                ArrayXXi malebirthAge = fertility.generateAgefromBirth(
-                    i, males_int, dataLoader.disappear_mat);
-                ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
-                    i, females_int, dataLoader.disappear_mat);
-            
-
+                // Eigen::ArrayXi males_int, females_int;
+                // fertility.generateNewbornData(newnewborn, males_int, females_int);
+                // ArrayXXi malebirthAge = fertility.generateAgefromBirth(
+                //     i, males_int, dataLoader.disappear_mat);
+                // ArrayXXi femalebirthAge = fertility.generateAgefromBirth(
+                //     i, females_int, dataLoader.disappear_mat);
 
             } // new birth
             
-            cout << "Completed processing ethnic group " << i << endl;  
+            cout << "test Completed processing ethnic group " << i << endl;  
         } // each eth + gen combination
 
-        cout << "All ethnic groups processed successfully" << endl;
-        
-
-        // write matrices to logging file
-        // for (size_t i = 0 ; i < 2; ++i){
-        //     int len = age_matrix_vec[i].len();
-        //     j = 0  
-        //     j = 1 header "mig"
+        cout << "All test ethnic groups processed successfully" << endl;
 
 
-        //     for (size_t j = 2; j < len; ++j )
+        // 
+    
 
-        // }
-        // validation 
-      
-    ArrayXXi popu_mat;
-
-    for (size_t i = 0; i < 2; ++i) {
+    for (size_t i = 0; i < 8; ++i) {
+        ArrayXXi popu_mat;
         popu_mat = ArrayXXi::Zero(86, 34);
-
         int len = age_matrix_vec[i].size();
         for (size_t j = 0; j < len; ++j) {
             // popu_mat = ArrayXXi::Zero(86, 34);
-            if (j == 1){
-                ArrayXXi mig_mat = ArrayXXi::Zero(86, 34);
-                calculate_popu(age_matrix_vec[i][j], mig_mat);
-                string popu_filename = "output/mig_matrix_" + to_string(i) + "_popu.txt";
-                ofstream mig_file(popu_filename);
-                mig_file << "mig Matrix:\n" << mig_mat << endl;
-                
-            }
-
             calculate_popu(age_matrix_vec[i][j], popu_mat);
-            // std::cout <<"step 1" << std::endl;
-            // if (j == 0){
-            //     ofstream popu_file("output/age_matrix_1990.txt");
-            //     popu_file << "Simulated Matrix:\n" << popu_mat << endl;
-            // }
-            // else if (j == 1) {
-            //     ofstream popu_file("output/age_matrix_migrate.txt");
-            //     popu_file << "Simulated Matrix:\n" << popu_mat << endl;
-            // }
+        }
+        // modelling
+        ArrayXXi mock_popu_ref =  dataLoader.mock_popu_mat[i].leftCols(34);
+
+        ArrayXXi diff = (mock_popu_ref - popu_mat );
+        ArrayXXi people_need = lazyUpdates(diff);
+
+        ArrayXXi mig_age_matrix = mig_simulator.generateMigration(
+                    people_need, 
+                    dataLoader.disappear_mat, 
+                    i
+                );
+        age_matrix_vec[i].push_back(mig_age_matrix);
+
+        // do the 2024 - 2050 projection
+        // get column 34 
+        // ArrayXi popu_2023 = mock_popu_ref.cols(34);
+        // // 
+        // ArrayXXi future_mat = 
+
+
+
+    }   
+
+    // Step 2: Loop over each file (popu_matrix_0.csv to popu_matrix_7.csv)
+    for (size_t i = 0; i < age_matrix_vec.size(); ++i) {
+        // Create the file name dynamically
+        // std::string filename = "output/popu_matrix_" + std::to_string(i) + ".bin";
+        std::string filename = "output/popu_matrix_" + std::to_string(i) + ".csv";
+        // Open the file for writing
+        std::ofstream file(filename);
+        
+        // Check if the file is open successfully
+        if (!file.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return 1; // Exit with error
         }
 
-        string popu_filename = "output/age_matrix_" + to_string(i) + "_popu.txt";
-        ofstream popu_file(popu_filename);
-
-        string t_filename = "output/true_matrix_" + to_string(i) + "_popu.txt";
-        ofstream true_file(t_filename);
-        if (true_file.is_open()) {
-            true_file << "true Matrix:\n" << dataLoader.mock_popu_mat[i].leftCols(34) << "\n\n";
-            true_file.close();
+        // Step 4: Write the contents of each ArrayXXi inside age_matrix_vec[i] to the file
+        for (size_t j = 0; j < age_matrix_vec[i].size(); ++j) {
+            // Write the matrix contents row by row
+            for (int row = 0; row < age_matrix_vec[i][j].rows(); ++row) {
+                for (int col = 0; col < age_matrix_vec[i][j].cols(); ++col) {
+                    file << age_matrix_vec[i][j](row, col);
+                    if (col != age_matrix_vec[i][j].cols() - 1) {
+                        file << ","; // Add a comma unless it's the last element in the row
+                    }
+                }
+                file << "\n"; // Newline after each row
+            }
         }
 
-        if (popu_file.is_open()) {
+        // // Step 4: Write the contents of each ArrayXXi inside age_matrix_vec[i] to the file
+        // int cols = 0;
+        // for (size_t j = 0; j < age_matrix_vec[i].size(); ++j) {
+        //     // Get the matrix dimensions
+        //     int rows = age_matrix_vec[i][j].rows();
+        //     cols += age_matrix_vec[i][j].cols();
 
-            popu_file << "death Matrix:\n" << dataLoader.disappear_mat[i] << endl;
-            popu_file << "Simulated without Matrix:\n" << popu_mat << endl;
-            
-            
-            auto mock_popu_ref =  dataLoader.mock_popu_mat[i].leftCols(34);
-            // Convert both matrices to double before performing the division
-            ArrayXXd popu_mat_double = popu_mat.cast<double>();
-            ArrayXXd mock_popu_ref_double = mock_popu_ref.cast<double>();
+        //     // Write the dimensions to the file (important for reconstruction)
+        //     file.write(reinterpret_cast<char*>(&rows), sizeof(int));
+        //     file.write(reinterpret_cast<char*>(&cols), sizeof(int));
 
-            // Calculate relative difference using simple division operator
-            ArrayXXd diff = (popu_mat_double - mock_popu_ref_double) / mock_popu_ref_double;
+        //     // Write the matrix data to the binary file
+        //     file.write(reinterpret_cast<char*>(age_matrix_vec[i][j].data()), 
+        //                rows * cols * sizeof(int));
+        // }
 
-            // Set precision for the output
-            Eigen::IOFormat fmt(2, 0, ", ", "\n", "[", "]");
-
-            popu_file << "Difference Matrix:\n" << diff.format(fmt) << "\n\n";
-            // popu_file << "Maximum Absolute Difference: " << max_abs_diff << endl;
-            // calculate difference 
-            diff = (popu_mat_double - mock_popu_ref_double);
-            popu_file << "Difference Matrix:\n" << diff.format(fmt) << "\n\n";
-
-            // Calculate column sums of difference matrix
-            Eigen::VectorXd col_sums = diff.colwise().sum();
-
-
-            // Print column sums
-            popu_file << "Column Sums of Difference Matrix:\n" << col_sums.format(fmt) << "\n\n";
-            
-            popu_file << "migration \n" <<  dataLoader.migration_in[i]  << "\n";
-
-            popu_file.close();
-
-
-        } else {
-            cerr << "Error: Could not open file " << popu_filename << endl;
-        }
-
-    } 
-    
-    } catch (const exception& e) {
-        cerr << "Error: " << e.what() << endl;
-        return 1;
+        file.close();
+        std::cout << "Successfully wrote to " << filename << std::endl;
     }
 
 
-return 0;
+        // time calculate
+        auto end = std::chrono::high_resolution_clock::now();
+        // 
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+        int minutes = duration.count() / 60;
+        int seconds = duration.count() % 60;
+
+        std::cout << "Program runtime: " << minutes << " minutes and " << seconds << " seconds\n";
+
+
+     // eth + gender
+
+// for an eigen arrayxxi  /Users/haolong/Documents/demos_v_matrix/src/main.cpp
+
+
+
+
+
+
 
 }

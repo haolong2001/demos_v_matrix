@@ -25,6 +25,11 @@ void writeMatrixToLog(std::ofstream& log_file,
     log_file << matrix << "\n\n";
 }
 
+// void storeMatrix (ofstream &file, const ArrayXXi &matrix) {
+
+//     file << matrix
+// }
+
 
 Eigen::ArrayXXf Utils::generateRandomValues(int rows, int cols) {
     std::random_device rd;

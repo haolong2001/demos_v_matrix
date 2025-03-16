@@ -1,12 +1,40 @@
-# demos_v_matrix
-demos matrix version 
+# demos_v_matrix  
 
+A matrix-based demographic simulation program. This project models population dynamics using fertility, mortality, and migration data.
 
+## 📦 Features  
+- Simulates population changes based on demographic factors  
+- Processes data using a structured matrix approach  
+- Outputs results to the `output/` folder  
 
-# logging file 10.23 
+## 🚀 Compilation  
 
-read the binary file to c++ 
-binary file is a series file 
+Ensure you have `clang++` installed, then compile the program using:  
 
-1. if we know the size already, we can pass the 1-d array (from binary file) to 3 d matrix 
-(see tutorial for matrix types in c++ )
+```sh
+clang++ -std=c++11 \
+    -Iinclude \
+    src/deathages.cpp \
+    src/DataLoader.cpp \
+    src/fertility.cpp \
+    src/migration.cpp \
+    src/utils.cpp \
+    src/validate.cpp \
+    src/main.cpp \
+    -o build/main_2023
+```    
+    
+## ▶️ Running the Program
+After compilation, run:
+
+./build/main_2023
+
+The results will be saved in the `output/` folder.
+
+## Project Structure
+
+├── include/        # Header files  
+├── src/            # Source code files  
+├── build/          # Compiled binary output  
+├── output/         # Generated results  
+├── README.md       # Project documentation 
