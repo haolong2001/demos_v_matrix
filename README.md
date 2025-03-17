@@ -1,6 +1,7 @@
 # demos_v_matrix  
 
-A matrix-based demographic simulation program. This project models population dynamics using fertility, mortality, and migration data.
+An age, gender, ethnicity-specific high dimensional stochastic probability matrix-based demographic simulation program. 
+This program models population transitions from 1990 to 2023 using fertility, mortality, and migration data.
 
 ## 📦 Features  
 - Simulates population changes based on demographic factors  
@@ -9,7 +10,14 @@ A matrix-based demographic simulation program. This project models population dy
 
 ## 🚀 Compilation  
 
-Ensure you have `clang++` installed, then compile the program using:  
+Ensure you have c++, `clang++`,  Eigen, and the EigenRand library installed, then compile the program using: 
+
+install page for Eigen https://eigen.tuxfamily.org/index.php?title=Main_Page
+
+check the path you need to install to : clang++ -E -x c++ - -v < /dev/null
+
+
+
 
 ```sh
 clang++ -std=c++11 \
@@ -38,3 +46,6 @@ The results will be saved in the `output/` folder.
 ├── build/          # Compiled binary output  
 ├── output/         # Generated results  
 ├── README.md       # Project documentation 
+
+
+
