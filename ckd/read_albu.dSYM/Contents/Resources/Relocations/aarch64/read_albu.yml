@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/haolong/Documents/demos_v_matrix/ckd/read_albu'
+relocations:     []
+...
