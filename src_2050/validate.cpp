@@ -28,8 +28,6 @@ void calculate_popu(const ArrayXXi& ind_age_mat, ArrayXXi& popu) {
     }
 }
 
-
-
 // int main() {
 //     // Create a sample individual age matrix (5 individuals, 3 time points)
 //     ArrayXXi ind_age_mat(5, 3);

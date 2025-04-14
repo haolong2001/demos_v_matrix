@@ -204,39 +204,6 @@ int main() {
         ArrayXXi diff = (mock_popu_ref - popu_mat );
         ArrayXXi people_need = lazyUpdates(diff);
 
-        // print the people_need matrix
-        if (i <= 1){
-            // use the people_need matrix to generate migration rate for each matrix 
-            // sum up each column of people_need matrix, and then divide by the population of that year
-            ArrayXf sum_people_need = people_need.colwise().sum().cast<float>();
-            ArrayXf popu_2023 = mock_popu_ref.colwise().sum().cast<float>();
-            ArrayXf migration_rate = sum_people_need / popu_2023;
-            
-            // Print column sums horizontally
-            std::cout << "Column sums for ethnic group " << i << ":" << std::endl;
-            std::cout << "sum_people_need: ";
-            for(int j = 0; j < sum_people_need.size(); ++j) {
-                std::cout << std::fixed << std::setprecision(0) << sum_people_need(j) << " ";
-            }
-            std::cout << std::endl;
-            
-            std::cout << "popu_2023: ";
-            for(int j = 0; j < popu_2023.size(); ++j) {
-                std::cout << std::fixed << std::setprecision(0) << popu_2023(j) << " ";
-            }
-            std::cout << std::endl;
-            
-            // Print migration rates horizontally
-            std::cout << "migration_rate: ";
-            for(int j = 0; j < migration_rate.size(); ++j) {
-                std::cout << std::fixed << std::setprecision(4) << migration_rate(j) << " ";
-            }
-            std::cout << std::endl << std::endl;
-        }
-        
-
-
-
         ArrayXXi mig_age_matrix = mig_simulator.generateMigration(
                     people_need, 
                     dataLoader.disappear_mat, 

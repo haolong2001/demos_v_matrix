@@ -62,6 +62,10 @@
         "variant": "cpp",
         "eigenrand": "cpp",
         "dense": "cpp",
-        "__memory": "cpp"
+        "__memory": "cpp",
+        "memory": "cpp",
+        "forward_list": "cpp",
+        "print": "cpp",
+        "stack": "cpp"
     }
 }
