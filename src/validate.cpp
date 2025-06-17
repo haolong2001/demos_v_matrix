@@ -21,7 +21,7 @@ void calculate_popu(const ArrayXXi& ind_age_mat, ArrayXXi& popu) {
             if (value > 84) {
                 popu(85, j) += 1;
             }
-            else if (value >= 0) {  // Assuming negative values should be ignored
+            else if (value >= 0) {  // negative values should be ignored
                 popu(value, j) += 1;
             }
         }

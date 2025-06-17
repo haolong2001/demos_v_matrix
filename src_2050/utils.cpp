@@ -1,5 +1,4 @@
-
-
+#include "utils.h"
 #include <iostream>
 #include <fstream>
 #include "utils.h"
@@ -8,6 +7,11 @@
 
 using namespace Eigen;
 
+// what does inline do?
+// Inline helper function to check if file exists
+inline bool fileExists(const std::string& filename) {
+    return std::filesystem::exists(filename);
+}
 
 void writeMatrixToLog(std::ofstream& log_file, 
                      const std::string& matrix_name, 

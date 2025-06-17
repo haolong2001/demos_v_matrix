@@ -141,9 +141,10 @@ Fertility::Fertility(const float (&fertility_rates)[12][71][35])
       dis_(0.0, 1.0) {}
 
 float Fertility::MapFertilityRate(int index, int year_idx, int age) const {
-  if (age < 15 || age >= 49) {
-    return 0.0f;
-  }
+  // we should make sure the age is between 15 and 50
+  // if (age < 15 || age >= 49) {
+  //   return 0.0f;
+  // }
   return fertility_rates_[index][year_idx + 10][age - 15];
 }
 
