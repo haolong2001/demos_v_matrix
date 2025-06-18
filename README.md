@@ -12,9 +12,16 @@ This program models population transitions from 1990 to 2023 using fertility, mo
 
 Ensure you have c++, `clang++`,  Eigen, and the EigenRand library installed, then compile the program using: 
 
+
+
 install page for Eigen https://eigen.tuxfamily.org/index.php?title=Main_Page
 
+EigenRand: https://github.com/bab2min/EigenRand/releases
+
 check the path you need to install to : clang++ -E -x c++ - -v < /dev/null
+
+the path on mac:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
 
 
 
@@ -38,6 +45,11 @@ After compilation, run:
 ./build/main_2023
 
 The results will be saved in the `output/` folder.
+
+0 - 7 means (chn, mal, ind and others) * (male female)
+
+chn mal 0 chn fem 1;
+mal mal 2
 
 ## Project Structure
 
