@@ -13,7 +13,6 @@ This program models population transitions from 1990 to 2023 using fertility, mo
 Ensure you have c++, `clang++`,  Eigen, and the EigenRand library installed, then compile the program using: 
 
 
-
 install page for Eigen https://eigen.tuxfamily.org/index.php?title=Main_Page
 
 EigenRand: https://github.com/bab2min/EigenRand/releases
@@ -24,10 +23,11 @@ the path on mac:
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
 
 
+## ▶️ Complie the Program
 
-
+To run the population construction code 
 ```sh
-clang++ -std=c++11 \
+clang++ -std=c++17 \
     -Iinclude \
     src/deathages.cpp \
     src/DataLoader.cpp \
@@ -38,24 +38,39 @@ clang++ -std=c++11 \
     src/main.cpp \
     -o build/main_2023
 ```    
+
+To run the population forecast code 
+
+```
+clang++ -std=c++17 -Iinclude \
+src_2050/forecast_2050.cpp \
+src_2050/forecast_fertility.cpp \
+src_2050/forecast_death.cpp \
+src_2050/forecast_immi.cpp \
+src_2050/forecast_mortality_reader.cpp \
+src_2050/matrix_reader.cpp \
+-o build/forecast_2050
+```
     
-## ▶️ Running the Program
+## ▶️ Run the Program
 After compilation, run:
 
 ./build/main_2023
+./build/forecast_2050
 
 The results will be saved in the `output/` folder.
 
 0 - 7 means (chn, mal, ind and others) * (male female)
 
 chn mal 0 chn fem 1;
-mal mal 2
+mal mal 2,mal, fem 3...
 
 ## Project Structure
 
 ├── include/        # Header files  
-├── src/            # Source code files  
-├── build/          # Compiled binary output  
+├── src/            # Source code files for population construction between 1990 and 2023
+├── build/          # Compiled binary output
+├── src_2050/       # Source code files for population forecast between 2024 and 2050
 ├── output/         # Generated results  
 ├── README.md       # Project documentation 
 
@@ -84,9 +99,6 @@ initlize a matrix with base population as popu 2023
 1. Calculate age, gender and ethnicity-specific immigration rates using 10 years of pre-COVID data
 2. Apply these rates to future population projections to estimate immigration numbers
 3. Scale immigration numbers by a factor of 1/20 in the baseline scenario
-
-### Customization
-The immigration scaling factor can be modified in the `forecast_2050` code to test different immigration scenarios [TODO]
 
 ### forecast fertility 
 
@@ -117,7 +129,7 @@ Fertility Forecasting Algorithm:
 
 ### forecast mortality 
 
-use bern
+Lee Carter
 
 
 
