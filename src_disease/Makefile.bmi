@@ -3,8 +3,8 @@
 
 CXX = clang++
 CXXFLAGS = -std=c++17 -I../include -O2 -pthread
-TARGET = bmi_calculator
-SOURCE = bmi_calculator.cpp
+TARGET = bmi_process_parallel
+SOURCE = bmi_process_parallel.cpp
 BUILD_DIR = ../build/BMI
 
 # Default target

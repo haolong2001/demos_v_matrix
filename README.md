@@ -1,13 +1,24 @@
 # demos_v_matrix  
 
-An age, gender, ethnicity-specific high dimensional stochastic probability matrix-based demographic simulation program. 
-This program models population transitions from 1990 to 2023 using fertility, mortality, and migration data.
+An age, gender, ethnicity-specific high dimensional stochastic probability matrix-based demographic simulation program. The program can also incorporate disease progression analysis into the demographic simulations.
+
 
 ## 📦 Features  
 - Simulates population changes based on demographic factors  
 - Processes data using a structured matrix approach  
 - Outputs results to the `output/` folder  
 - Parallel processing of forecast data for disease analysis
+
+## Project Structure
+
+├── include/        # Header files  
+├── src/            # Source code files for population construction between 1990 and 2023
+├── src_2050/       # Source code files for population forecast between 2024 and 2050
+├── src_disease/    # Disease processing module for parallel analysis
+├── cmake/          # CMake build configuration files
+├── build/          # Compiled binary output
+├── output/         # Generated results  
+├── README.md       # Project documentation
 
 ## 🚀 Compilation  
 
@@ -23,141 +34,113 @@ check the path you need to install to : clang++ -E -x c++ - -v < /dev/null
 the path on mac:
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
 
+## ▶️ Build Options
 
-## ▶️ Complie the Program
+### Option 1: CMake Build System (Recommended)
+The project now uses a CMake build system organized in the `cmake/` directory:
 
-To run the population construction code 
-```sh
-clang++ -std=c++17 \
-    -Iinclude \
-    src/deathages.cpp \
-    src/DataLoader.cpp \
-    src/fertility.cpp \
-    src/migration.cpp \
-    src/utils.cpp \
-    src/validate.cpp \
-    src/main.cpp \
-    -o build/main_2023
-```    
+```bash
+# Build all components
+mkdir build_cmake
+cd build_cmake
+cmake ../cmake
+make -j4
 
-To run the population forecast code 
+# Build specific components only
 
-```
-clang++ -std=c++17 -Iinclude \
-src_2050/forecast_2050.cpp \
-src_2050/forecast_fertility.cpp \
-src_2050/forecast_death.cpp \
-src_2050/forecast_immi.cpp \
-src_2050/forecast_mortality_reader.cpp \
-src_2050/matrix_reader.cpp \
--o build/forecast_2050
+# Build reconstruction only
+cmake ../cmake -DBUILD_RECONSTRUCT=ON -DBUILD_FORECAST=OFF -DBUILD_MIGRATION=OFF
+make
+
+# Build forecast only  
+cmake ../cmake -DBUILD_RECONSTRUCT=OFF -DBUILD_FORECAST=ON -DBUILD_MIGRATION=OFF
+make
 ```
 
-To compile the disease processing module
+**Available executables:**
+- `reconstruct_1990_2023` - Population reconstruction (1990-2023)
+- `forecast_2024_2050` - Population forecast (2024-2050)
+- `get_migration_matrix` - Migration matrix calculation
+
+
+See `cmake/README.md` for detailed build instructions.
+
+
+To compile the BMI calculation module
 ```bash
 cd src_disease
-make -f Makefile.disease
+make -f Makefile.bmi
 ```
     
 ## ▶️ Run the Program
 After compilation, run:
 
-./build/main_2023
-
-The results will be saved in the `output/` folder.
-
-./build/forecast_2050
-
+**Using CMake build:**
+```bash
+./build/reconstruct_1990_2023  # Population reconstruction
+./build/forecast_2024_2050     # Population forecast
+./build/get_migration_matrix   # Migration calculation
+```
 Results are saved in timestamped folders with random numbers: `output/YYYYMMDD_HHMMSS_RRRR/`
 
-**Disease Processing:**
-```bash
-./src_disease/disease_processor
-```
 
-0 - 7 means (chn, mal, ind and others) * (male female)
-
-chn mal 0 chn fem 1;
-mal mal 2,mal, fem 3...
-
-## 🔄 Running Multiple Iterations
-
-### Option 1: Simple Sequential Loop
-```bash
-for i in {1..10}; do echo "Running iteration $i/10..."; ./forecast_2050; done
-```
-
-### Option 2: Using the Provided Script
-```bash
-# Make the script executable
-chmod +x run_multiple_times.sh
-
-# Run 10 times (default)
-./run_multiple_times.sh
-
-# Run a specific number of times
-./run_multiple_times.sh 20
-```
-
-### Option 3: Parallel Execution (if you want faster runs)
-If you want to run multiple instances in parallel (assuming your system can handle it):
+Parallel Execution (Recommended)
+For faster processing, run multiple instances in parallel:
 
 ```bash
 # Run 5 instances in parallel
-for i in {1..5}; do ./forecast_2050 & done; wait
+for i in {1..5}; do ./build/forecast_2024_2050 & done; wait
 
 # Run 10 instances in parallel
-for i in {1..10}; do ./forecast_2050 & done; wait
+for i in {1..10}; do ./build/forecast_2024_2050 & done; wait
+```
+**Note**: Each run creates unique timestamped output directories, so parallel execution won't cause conflicts.
+
+
+
+**BMI Processing:**
+```bash
+./build/BMI/bmi_process_parallel
 ```
 
-**Note**: Each run creates unique timestamped output directories, so parallel execution won't cause conflicts.
+**Migration Matrix Calculation:(optional)**
+```bash
+./build/get_migration_matrix
+```
+
 
 ## 📋 Usage Workflow
 
 ### Complete Analysis Pipeline
 
-1. **Run multiple forecast simulations:**
+1. **Run multiple forecast simulations in parallel:**
 ```bash
-# Run 10 forecast simulations
-./run_multiple_times.sh 10
-
-# Or run manually
-for i in {1..10}; do echo "Running iteration $i/10..."; ./forecast_2050; done
+# Run 10 forecast simulations in parallel
+for i in {1..10}; do ./build/forecast_2024_2050 & done; wait
 ```
 
 2. **Process all results in parallel:**
 ```bash
 # Process all forecast folders for disease analysis
-./src_disease/disease_processor
+./build/BMI/bmi_process_parallel
 ```
 
-### Typical Workflow Example
+Here we can add more diseaeses.
 
-```bash
-# Step 1: Generate multiple forecast scenarios
-./run_multiple_times.sh 5
 
-# Step 2: Process all results for analysis
-./src_disease/disease_processor
-
-# Step 3: Check results
+3. **Check results**
+```
 ls output/ | grep -E "^[0-9]{8}_[0-9]{6}_[0-9]{4}$"
 ```
 
-This workflow creates multiple forecast scenarios and then processes them all in parallel for disease analysis.
-
-## Project Structure
-
-├── include/        # Header files  
-├── src/            # Source code files for population construction between 1990 and 2023
-├── build/          # Compiled binary output
-├── src_2050/       # Source code files for population forecast between 2024 and 2050
-├── src_disease/    # Disease processing module for parallel analysis (BMI included)
-├── output/         # Generated results  
-├── README.md       # Project documentation 
+This workflow creates multiple forecast scenarios in parallel and then processes them all for disease analysis.
 
 
-## forecast part 
+
+
+
+
+## forecast part Methodology
 
 basically, we wish to have the population matrix 
 where the peopele influx comes from:
@@ -174,10 +157,9 @@ initlize a matrix with base population as popu 2023
 
 ### Input Data
 * Historical migration data from 1990-2023 is stored in `data/migration/migration_0.csv`
-* Immigration calculations are performed in `preprocess_py/cal_immi.ipynb`
+* Immigration rate calculations are performed in `preprocess_py/cal_immi.ipynb`
 * Final immigration projections are saved to `data/migration/future_immigration.bin`
 
-### Methodology
 1. Calculate age, gender and ethnicity-specific immigration rates using 10 years of pre-COVID data
 2. Apply these rates to future population projections to estimate immigration numbers
 3. Scale immigration numbers by a factor of 1/20 in the baseline scenario
@@ -212,6 +194,32 @@ Fertility Forecasting Algorithm:
 ### forecast mortality 
 
 Lee Carter
+
+## Migration Matrix Calculation
+
+The migration matrix calculation uses a CMake-based build system to process historical migration data and generate ethnicity-specific migration matrices.
+
+### Build and Run
+```bash
+# Build migration calculation
+mkdir build_cmake
+cd build_cmake
+cmake ..
+make
+
+# Run migration calculation
+./build_cmake/get_migration_matrix
+```
+
+### Output
+- Generates 8 migration CSV files: `data/migration/migration_0.csv` through `data/migration/migration_7.csv`
+- Each file contains ethnicity-specific migration data for demographic modeling
+
+
+0 - 7 means (chn, mal, ind and others) * (male female)
+
+chn mal 0 chn fem 1;
+mal mal 2,mal, fem 3...
 
 
 

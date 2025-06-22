@@ -4,7 +4,7 @@ This module contains a parallel processor for analyzing forecast data from multi
 
 ## Overview
 
-The `disease_processor` program automatically processes all forecast folders in the `output/` directory, implementing the same logic as the Python analysis code but with C++ performance and parallel processing.
+The `bmi_process_parallel` program automatically processes all forecast folders in the `output/` directory, implementing the same logic as the Python analysis code but with C++ performance and parallel processing.
 
 ## Features
 
@@ -27,13 +27,13 @@ make -f Makefile.disease
 **Run from the parent directory (recommended):**
 ```bash
 # From the main project directory
-./src_disease/disease_processor
+./build/BMI/bmi_process_parallel
 ```
 
 **Or compile and run from src_disease directory:**
 ```bash
 cd src_disease
-make -f Makefile.disease run
+make -f Makefile.bmi run
 ```
 
 ## Output
@@ -67,8 +67,18 @@ make -f Makefile.disease install
 
 This will copy the compiled binary to `../build/disease_processor` for use in the main project.
 
+## Workflow Integration
+
+The disease processing module works with the main project workflow:
+
+1. **Generate forecasts**: `for i in {1..10}; do ../build/forecast_2050 & done; wait`
+2. **Process disease data**: `./disease_processor`
+3. **Calculate BMI**: `../build/BMI/bmi_process_parallel`
+
 ## File Structure
 
 - `parallel_disease_processor.cpp` - Main source code
+- `bmi_process_parallel.cpp` - BMI calculation module
 - `Makefile.disease` - Separate Makefile to avoid conflicts
+- `Makefile.bmi` - BMI calculator Makefile
 - `README.md` - This documentation 
