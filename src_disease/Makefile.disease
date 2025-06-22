@@ -1,0 +1,33 @@
+# Disease Processing Module Makefile
+# Usage: make -f Makefile.disease [target]
+
+CXX = clang++
+CXXFLAGS = -std=c++17 -I../include -O2 -pthread
+TARGET = disease_processor
+SOURCE = parallel_disease_processor.cpp
+
+# Default target
+all: $(TARGET)
+
+# Compile the disease processor
+$(TARGET): $(SOURCE)
+	$(CXX) $(CXXFLAGS) $(SOURCE) -o $(TARGET)
+
+# Clean build files
+clean:
+	rm -f $(TARGET)
+
+# Run the disease processor
+run: $(TARGET)
+	./$(TARGET)
+
+# Install to build directory with unique name
+install: $(TARGET)
+	mkdir -p ../build
+	cp $(TARGET) ../build/
+
+# Test compilation
+test: $(TARGET)
+	@echo "Compilation successful: $(TARGET)"
+
+.PHONY: all clean run install test 

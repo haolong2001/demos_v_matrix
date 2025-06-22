@@ -1,0 +1,33 @@
+# BMI Calculator Makefile
+# Usage: make -f Makefile.bmi [target]
+
+CXX = clang++
+CXXFLAGS = -std=c++17 -I../include -O2 -pthread
+TARGET = bmi_calculator
+SOURCE = bmi_calculator.cpp
+BUILD_DIR = ../build/BMI
+
+# Default target
+all: $(BUILD_DIR)/$(TARGET)
+
+# Create build directory and compile
+$(BUILD_DIR)/$(TARGET): $(SOURCE) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(SOURCE) -o $(BUILD_DIR)/$(TARGET)
+
+# Create build directory
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+# Clean build files
+clean:
+	rm -f $(BUILD_DIR)/$(TARGET)
+
+# Run the BMI calculator
+run: $(BUILD_DIR)/$(TARGET)
+	cd .. && ./build/BMI/$(TARGET)
+
+# Test compilation
+test: $(BUILD_DIR)/$(TARGET)
+	@echo "Compilation successful: $(BUILD_DIR)/$(TARGET)"
+
+.PHONY: all clean run test 
