@@ -13,9 +13,7 @@ public:
     static vector<vector<double>> readCSVMatrix(
         const string& filename,
         char delimiter = ','
-    );
-
-    // Print matrix (first few elements for verification)
+    );    // Print matrix (first few elements for verification)
     static void printMatrixPreview(
         const vector<vector<double>>& matrix,
         int preview_rows,

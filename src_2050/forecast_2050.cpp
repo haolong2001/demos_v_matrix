@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <fstream>
 #include <filesystem>
+#include <random>
+#include <iomanip>
 
 using namespace std;
 using namespace Eigen;
@@ -120,9 +122,10 @@ int main() {
             combined_popu << base_popu, immigration;
             population_matrices[i].push_back(combined_popu);
             
-            // This will depend on how you want to handle the combined population
+            
             if (i % 2 == 1) {
                 // deal with fertility parts
+                cout << "Calculating births for ethnicity " << i/2 << endl;
                 auto [male_births, female_births] = calculateBirths(combined_popu, fertility_matrix, i/2);
 
                 // print the male and female births
@@ -154,14 +157,20 @@ int main() {
             }
         }
 
-        // Create timestamp-based directory
+        // Create timestamp-based directory with random number
         auto now = chrono::system_clock::now();
         time_t now_time = chrono::system_clock::to_time_t(now);
         stringstream ss;
         ss << put_time(localtime(&now_time), "%Y%m%d_%H%M%S");
         string timestamp = ss.str();
         
-        string output_dir = "output/" + timestamp;
+        // Generate 4-digit random number
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dis(1000, 9999);
+        int random_num = dis(gen);
+        
+        string output_dir = "output/" + timestamp + "_" + to_string(random_num);
         filesystem::create_directories(output_dir);
 
         // save the population matrices to csv

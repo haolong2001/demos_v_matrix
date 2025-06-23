@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.10)
+project(reconstruct_1990_2023)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add include directory
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# Collect source files for population reconstruction (1990-2023)
+set(SOURCES_MAIN
+    src/deathages.cpp
+    src/DataLoader.cpp
+    src/fertility.cpp
+    src/migration.cpp
+    src/utils.cpp
+    src/validate.cpp
+    src/main.cpp
+)
+
+# Create main executable for population reconstruction
+add_executable(reconstruct_1990_2023 ${SOURCES_MAIN})
+
+# Set output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build) 

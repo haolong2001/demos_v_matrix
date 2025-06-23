@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.10)
+project(forecast_2024_2050)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add include directory
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# Collect source files for population forecast (2024-2050)
+set(SOURCES_FORECAST
+    src_2050/forecast_2050.cpp
+    src_2050/forecast_fertility.cpp
+    src_2050/forecast_death.cpp
+    src_2050/forecast_immi.cpp
+    src_2050/forecast_mortality_reader.cpp
+    src_2050/matrix_reader.cpp
+)
+
+# Create forecast executable
+add_executable(forecast_2024_2050 ${SOURCES_FORECAST})
+
+# Set output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build) 
