@@ -1,6 +1,10 @@
+# Data directories
 /ckd/data/14 Mar/albu_matrix
 /ckd/data/14 Mar
 /ckd/data
-/ckd/data
+
+# Output directories
 /output
+
+# CKD directory (if you want to ignore the entire directory)
 /ckd

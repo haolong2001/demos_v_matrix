@@ -11,14 +11,16 @@ An age, gender, ethnicity-specific high dimensional stochastic probability matri
 
 ## Project Structure
 
-├── include/        # Header files  
-├── src/            # Source code files for population construction between 1990 and 2023
-├── src_2050/       # Source code files for population forecast between 2024 and 2050
-├── src_disease/    # Disease processing module for parallel analysis
-├── cmake/          # CMake build configuration files
-├── build/          # Compiled binary output
-├── output/         # Generated results  
-├── README.md       # Project documentation
+.
+├── include/        # Header files
+├── src/           # Source code files for population construction between 1990 and 2023
+├── src_2050/      # Source code files for population forecast between 2024 and 2050
+├── src_disease/   # Disease processing module for parallel analysis
+├── cmake/         # CMake build configuration files
+├── build/         # Compiled binary output
+├── output/        # Generated results
+└── README.md      # Project documentation
+
 
 ## 🚀 Before compiling
 
@@ -105,6 +107,7 @@ for i in {1..10}; do ./build/forecast_2024_2050 & done; wait
 ```
 
 the results will be under output/YYYYMMDD_HHMMSS_RRRR/BMI folder 
+
 **More Diseases**
 
 ... 
@@ -138,8 +141,6 @@ the output should be output/YYYYMMDD_HHMMSS_RRRR/Your_disease_name
 
 
 update readme.md file 
-
-
 
 ## forecast part Methodology
 
