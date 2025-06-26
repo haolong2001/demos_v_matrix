@@ -20,7 +20,7 @@ An age, gender, ethnicity-specific high dimensional stochastic probability matri
 ├── output/         # Generated results  
 ├── README.md       # Project documentation
 
-## 🚀 Compilation  
+## 🚀 Before compiling
 
 Ensure you have c++, `clang++`,  Eigen, and the EigenRand library installed, then compile the program using: 
 
@@ -34,9 +34,12 @@ check the path you need to install to : clang++ -E -x c++ - -v < /dev/null
 the path on mac:
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
 
-## ▶️ Build Options
 
-### Option 1: CMake Build System (Recommended)
+
+## ▶️ Build 
+
+**Population setup**
+
 The project now uses a CMake build system organized in the `cmake/` directory:
 
 ```bash
@@ -57,7 +60,7 @@ cmake ../cmake -DBUILD_RECONSTRUCT=OFF -DBUILD_FORECAST=ON -DBUILD_MIGRATION=OFF
 make
 ```
 
-**Available executables:**
+Available executables:
 - `reconstruct_1990_2023` - Population reconstruction (1990-2023)
 - `forecast_2024_2050` - Population forecast (2024-2050)
 - `get_migration_matrix` - Migration matrix calculation
@@ -65,27 +68,26 @@ make
 
 See `cmake/README.md` for detailed build instructions.
 
-
+**bmi setup**
 To compile the BMI calculation module
 ```bash
 cd src_disease
 make -f Makefile.bmi
 ```
     
-## ▶️ Run the Program
+## ▶️ Run 
 After compilation, run:
 
 **Using CMake build:**
 ```bash
 ./build/reconstruct_1990_2023  # Population reconstruction
 ./build/forecast_2024_2050     # Population forecast
-./build/get_migration_matrix   # Migration calculation
 ```
-Results are saved in timestamped folders with random numbers: `output/YYYYMMDD_HHMMSS_RRRR/`
+
+Population Results are saved in timestamped folders with random numbers: `output/YYYYMMDD_HHMMSS_RRRR/`
 
 
-Parallel Execution (Recommended)
-For faster processing, run multiple instances in parallel:
+Parallel Execution , run multiple instances in parallel:
 
 ```bash
 # Run 5 instances in parallel
@@ -97,46 +99,45 @@ for i in {1..10}; do ./build/forecast_2024_2050 & done; wait
 **Note**: Each run creates unique timestamped output directories, so parallel execution won't cause conflicts.
 
 
-
 **BMI Processing:**
 ```bash
 ./build/BMI/bmi_process_parallel
 ```
+
+the results will be under output/YYYYMMDD_HHMMSS_RRRR/BMI folder 
+**More Diseases**
+
+... 
+
 
 **Migration Matrix Calculation:(optional)**
 ```bash
 ./build/get_migration_matrix
 ```
 
-
-## 📋 Usage Workflow
-
-### Complete Analysis Pipeline
-
-1. **Run multiple forecast simulations in parallel:**
-```bash
-# Run 10 forecast simulations in parallel
-for i in {1..10}; do ./build/forecast_2024_2050 & done; wait
-```
-
-2. **Process all results in parallel:**
-```bash
-# Process all forecast folders for disease analysis
-./build/BMI/bmi_process_parallel
-```
-
-Here we can add more diseaeses.
-
-
 3. **Check results**
 ```
 ls output/ | grep -E "^[0-9]{8}_[0-9]{6}_[0-9]{4}$"
 ```
 
-This workflow creates multiple forecast scenarios in parallel and then processes them all for disease analysis.
+This workflow creates multiple population simulation in parallel and then processes them all for disease analysis.
 
 
 
+
+## ▶️ Add more diseases
+
+bmi and 
+Diabetes as an example:
+
+Load BMI matrices and forecast population matrices;
+
+write your cpp function
+
+the output should be output/YYYYMMDD_HHMMSS_RRRR/Your_disease_name
+
+
+update readme.md file 
 
 
 
