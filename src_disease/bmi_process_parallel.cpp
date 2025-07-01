@@ -44,11 +44,10 @@ MatrixXi readBinaryMatrix(const string& filename) {
     // Read all data
     vector<int32_t> data(num_rows * 27);
     file.read(reinterpret_cast<char*>(data.data()), file_size);
-    
-    // Reshape into matrix
-    MatrixXi matrix = Map<MatrixXi>(data.data(), num_rows, 27);
-    
-    return matrix;
+
+    typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixXiRowMajor;
+    Eigen::Map<MatrixXiRowMajor> matrix(data.data(), num_rows, 27);
+    return MatrixXi(matrix);
 }
 
 // Function to remove dead people (rows with all negative values)
@@ -159,37 +158,37 @@ VectorXd calculateBMIRow(const VectorXi& row, int index, const BMITable& bmitabl
     // Initialize random number generator
     static random_device rd;
     static mt19937 gen(rd());
-    static normal_distribution<double> norm(0.0, 1.0);
+    static normal_distribution<float> norm(0.0, 1.0);
     
     // Generate random numbers (once per row)
-    double r0 = norm(gen);
-    double r1 = norm(gen);
-    double r2 = norm(gen);
-    double r3 = norm(gen);
+    float r0 = norm(gen);
+    float r1 = norm(gen);
+    float r2 = norm(gen);
+    float r3 = norm(gen);
     
     // Calculate hyperparameters (once per row)
-    double M1 = bmitable.coefficients(index, 0) + bmitable.coefficients(index, 6) * r0;
-    double M2 = bmitable.coefficients(index, 1) + bmitable.coefficients(index, 7) * r0 + bmitable.coefficients(index, 8) * r1;
-    double M3 = bmitable.coefficients(index, 2) + bmitable.coefficients(index, 9) * r0 + bmitable.coefficients(index, 10) * r1 + bmitable.coefficients(index, 11) * r2;
-    double M4 = bmitable.coefficients(index, 3) + bmitable.coefficients(index, 12) * r0 + bmitable.coefficients(index, 13) * r1 + bmitable.coefficients(index, 14) * r2 + bmitable.coefficients(index, 15) * r3;
+    float M1 = bmitable.coefficients(index, 0) + bmitable.coefficients(index, 6) * r0;
+    float M2 = bmitable.coefficients(index, 1) + bmitable.coefficients(index, 7) * r0 + bmitable.coefficients(index, 8) * r1;
+    float M3 = bmitable.coefficients(index, 2) + bmitable.coefficients(index, 9) * r0 + bmitable.coefficients(index, 10) * r1 + bmitable.coefficients(index, 11) * r2;
+    float M4 = bmitable.coefficients(index, 3) + bmitable.coefficients(index, 12) * r0 + bmitable.coefficients(index, 13) * r1 + bmitable.coefficients(index, 14) * r2 + bmitable.coefficients(index, 15) * r3;
     
     // Calculate coefficients (once per row)
-    double y0 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950) + M1 * (35 - 18);
-    double y1 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950);
-    double y2 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950) + M3 * (55 - 35);
-    double y3 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950) + M3 * (55 - 35) + M4 * (75 - 55);
+    float y0 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950) + M1 * (35 - 18);
+    float y1 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950);
+    float y2 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950) + M3 * (55 - 35);
+    float y3 = M2 + bmitable.coefficients(index, 4) * (yearborn - 1950) + M3 * (55 - 35) + M4 * (75 - 55);
     
-    double m1 = 6 * (0.014492754 * ((y2 - y1) / 20 - (y1 - y0) / 17) - 0.003623188 * ((y3 - y2) / 20 - (y2 - y1) / 20));
-    double m2 = 6 * (-0.003623188 * ((y2 - y1) / 20 - (y1 - y0) / 17) + 0.013405797 * ((y3 - y2) / 20 - (y2 - y1) / 20));
-    double b0 = (y1 - y0) / 17 - 17.0 / 6 * m1;
-    double b1 = (y2 - y1) / 20 - 10 * m1 - 20.0 / 6 * (m2 - m1);
-    double b2 = (y3 - y2) / 20 - 10 * m2 + 20.0 / 6 * m2;
-    double d0 = m1 / (6 * 17);
-    double d1 = (m2 - m1) / (6 * 20);
-    double d2 = (-m2) / (6 * 20);
+    float m1 = 6 * (0.014492754 * ((y2 - y1) / 20 - (y1 - y0) / 17) - 0.003623188 * ((y3 - y2) / 20 - (y2 - y1) / 20));
+    float m2 = 6 * (-0.003623188 * ((y2 - y1) / 20 - (y1 - y0) / 17) + 0.013405797 * ((y3 - y2) / 20 - (y2 - y1) / 20));
+    float b0 = (y1 - y0) / 17 - 17.0 / 6 * m1;
+    float b1 = (y2 - y1) / 20 - 10 * m1 - 20.0 / 6 * (m2 - m1);
+    float b2 = (y3 - y2) / 20 - 10 * m2 + 20.0 / 6 * m2;
+    float d0 = m1 / (6 * 17);
+    float d1 = (m2 - m1) / (6 * 20);
+    float d2 = (-m2) / (6 * 20);
     
     // Get scale for this person
-    double scale = bmitable.coefficients(index, 5);
+    float scale = bmitable.coefficients(index, 5);
     
     // Calculate BMI for each age in the row
     VectorXd bmi_values(row.size());
@@ -197,7 +196,7 @@ VectorXd calculateBMIRow(const VectorXi& row, int index, const BMITable& bmitabl
         int age = row(i);
         
         // Calculate BMI based on age
-        double bmi_value;
+        float bmi_value;
         if (age == -1) {
             bmi_value = -1.0;
         } else if (age > 80) {
@@ -214,7 +213,7 @@ VectorXd calculateBMIRow(const VectorXi& row, int index, const BMITable& bmitabl
         
         // Apply random noise and exponential transformation
         if (bmi_value >= 0) {
-            double noise = norm(gen);
+            float noise = norm(gen);
             bmi_values(i) = exp(bmi_value + scale * noise);
         } else {
             bmi_values(i) = -1.0;
@@ -266,11 +265,11 @@ void processFolderBMI(const string& folder_path, const BMITable& bmitable) {
             throw runtime_error("Cannot create BMI file: " + bmi_filename);
         }
         
-        // Write matrix data as doubles
+        // Write matrix data as floats
         for (int r = 0; r < bmi_matrix.rows(); ++r) {
             for (int c = 0; c < bmi_matrix.cols(); ++c) {
-                double val = bmi_matrix(r, c);
-                bmi_file.write(reinterpret_cast<char*>(&val), sizeof(double));
+                float val = bmi_matrix(r, c);
+                bmi_file.write(reinterpret_cast<char*>(&val), sizeof(float));
             }
         }
         

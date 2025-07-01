@@ -103,6 +103,22 @@ for i in {1..10}; do ./build/forecast_2024_2050 & done; wait
 ./build/BMI/bmi_process_parallel
 ```
 
+**To View Result in csv format**
+```bash
+./COPD/read_bin_bmi
+```
+
+
+**Height Processing:**
+```bash
+./build/Height/height_process_parallel
+```
+
+**To View Result in csv format**
+```bash
+./COPD/read_bin_height
+```
+
 **Migration Matrix Calculation:(optional)**
 ```bash
 ./build/get_migration_matrix
