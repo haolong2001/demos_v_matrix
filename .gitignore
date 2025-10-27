@@ -7,7 +7,11 @@
 /output
 
 # CKD directory (if you want to ignore the entire directory)
-/ckd
+ckd/*
+
+# But keep this specific file
+!ckd/analysis/
+!ckd/analysis/popu_plot.py
 .DS_Store
 ckd/.DS_Store
 ckd/analysis/.DS_Store
