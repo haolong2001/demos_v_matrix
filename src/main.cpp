@@ -104,7 +104,7 @@ int main() {
             // deal with fertility 
             // read the female index 
             if (i % 2){
-                Eigen::ArrayXi births = fertility.GenerateBirth(0, age_matrix_vec[i][0]);
+                Eigen::ArrayXi births = fertility.GenerateBirth(i, age_matrix_vec[i][0]);
 
                 // the 1990 is calculated twice
                 births(0) = 0;

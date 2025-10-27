@@ -8,3 +8,8 @@
 
 # CKD directory (if you want to ignore the entire directory)
 /ckd
+.DS_Store
+ckd/.DS_Store
+ckd/analysis/.DS_Store
+ckd/data/.DS_Store
+data/.DS_Store

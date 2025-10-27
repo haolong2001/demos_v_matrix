@@ -22,7 +22,7 @@ vector<vector<vector<int>>> readPopulationMatrices() {
     matrices.reserve(8);  // We know there are 8 matrices
 
     for (int i = 0; i < 8; i++) {
-        string filename = "output/popu_matrix_" + to_string(i) + ".csv";
+        string filename = "output/Historical_data/popu_matrix_" + to_string(i) + ".csv";
         try {
             auto matrix = MatrixReader::readCSVMatrix(filename);
             // Convert double matrix to int matrix
@@ -111,6 +111,11 @@ int main() {
             // Process immigration
             MatrixXi agent_mat = GenerateAgentsMatrix(i, immigration_mat);
             MatrixXi immigration = forecast_death(agent_mat, mortality_mat, i % 2);
+            
+            if (i < 7) {
+                cout << "Immigration matrix shape (i=" << i << "): "
+                     << immigration.rows() << " x " << immigration.cols() << endl;
+            }
 
             // Print some statistics about the matrices
             cout << "\nMatrix " << i << " statistics:" << endl;
@@ -170,12 +175,17 @@ int main() {
         uniform_int_distribution<> dis(1000, 9999);
         int random_num = dis(gen);
         
-        string output_dir = "output/" + timestamp + "_" + to_string(random_num);
+        string output_dir = "output/Forecast/" + timestamp + "_" + to_string(random_num) ;
         filesystem::create_directories(output_dir);
+
+
+        // Create popu subdirectory
+        string popu_dir = output_dir + "/popu";
+        filesystem::create_directories(popu_dir);
 
         // save the population matrices to csv
         for (int i = 0; i < 8; i++) {
-            string filename = output_dir + "/forecast_matrix_" + to_string(i) + ".bin";
+            string filename = popu_dir + "/forecast_matrix_" + to_string(i) + ".bin";
             ofstream file(filename, ios::binary);
             if (!file) {
                 throw runtime_error("Error opening file: " + filename);

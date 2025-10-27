@@ -46,7 +46,7 @@ The project now uses a CMake build system organized in the `cmake/` directory:
 
 ```bash
 # Build all components
-mkdir build_cmake
+mkdir -p build_cmake
 cd build_cmake
 cmake ../cmake
 make -j4
