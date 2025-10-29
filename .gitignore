@@ -1,10 +1,7 @@
 # Data directories
-/ckd/data/14 Mar/albu_matrix
-/ckd/data/14 Mar
-/ckd/data
 
 # Output directories
-/output
+
 
 # CKD directory (if you want to ignore the entire directory)
 ckd/*
@@ -17,3 +14,5 @@ ckd/.DS_Store
 ckd/analysis/.DS_Store
 ckd/data/.DS_Store
 data/.DS_Store
+output/Archive.zip
+output/Archive 2.zip
