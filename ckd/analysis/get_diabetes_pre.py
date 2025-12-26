@@ -21,7 +21,13 @@ for i in range(8):
 
 
 #%% get diabetes prevalence
-year = [2010,2017,2020,2021]
+year = np.array([2010,2017,2020,2021])
+idx_ls = year - 2050 +1
 
-get_overall_prevalence_3d(age_matrix_vec_2050, diabetes_mat_storage, -28)
+year_pre_ls = []
+for idx in idx_ls:
+    year_pre_ls.append(get_overall_prevalence_3d(age_matrix_vec_2050, diabetes_mat_storage, idx))
+
+print(year_pre_ls)
+
 # %%

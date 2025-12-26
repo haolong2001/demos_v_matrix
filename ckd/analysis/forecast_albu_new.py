@@ -6,9 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from impute_albu import schedule_pre_albuminuria_probability,schedule_albuminuria_probability
-
 from Age_BMI_loading import age_dict
-
 from prevalence import get_prevalence,get_pre_prevalence,get_overall_prevalence,get_overall_pre_prevalence
 from prevalence_3d import get_prevalence_3d, get_pre_prevalence_3d, get_overall_prevalence_3d, get_overall_pre_prevalence_3d
 
@@ -21,13 +19,14 @@ import time
 N = 8
 albu_status_dict = {}
 albu_mat_list_overall = []
-A_range = [0.001,0.002,0.003,0.004,0.005] # simulate uniformly distributed
+ # simulate uniformly distributed
 
 # test 
 
-#A_range = [0.001,0.005] # for testing, results should be 0.034
-
+A_range = [0.002,0.006] # for testing, results should be 0.034
+A_range = [0.0015,0.0025,0.0035,0.0045,0.0055]
 start_time = time.time()
+
 
 from multiprocessing import Pool
 import functools
@@ -186,4 +185,4 @@ if __name__ == '__main__':
 
 # Load albuminuria matrices for different A values
 
-# nphs : 11.1; 1.6
+# nphs : 11.1; 1.6 ;

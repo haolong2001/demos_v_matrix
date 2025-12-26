@@ -25,7 +25,6 @@ for i, matrix in enumerate(age_matrix_vec):
 
 print("target shape:", target.shape)
 
-
 #%% Load historical data
 result_matrix = np.fromfile("../../data/bin/result_matrix_data.bin", dtype=np.float64)  # Specify data type if needed
 result_matrix = result_matrix.reshape(8, 86, 35)  # Reshape to correct dimensions (8 cohorts, 86 ages, 35 years)
@@ -139,5 +138,72 @@ print("✅ All 6 plots generated and saved to ../plots/")
 # %%
 import os
 print("Current path:", os.getcwd())
+
+#%%
+result_matrix
+#%% 
+from Age_BMI_loading import (
+    age_matrix_vec_2050,
+)
+age_matrix_vec_2050[0].shape
+
+
+#%% Initialize target array
+target = np.zeros((num_files, 86, age_matrix_vec_2050[0][0].shape[1]), dtype=int)
+for i, matrix in enumerate(age_matrix_vec_2050):
+    matrix = matrix[0]
+    for col in range(matrix.shape[1]):
+        ages = matrix[:, col].astype(int)
+        for a in range(85):
+            target[i, a, col] = np.sum(ages == a)
+        target[i, 85, col] = np.sum(ages >= 85)
+
+print("target shape:", target.shape)
+
+
+
+#%%
+# Assuming target has shape (6, age, year)
+age_60_idx = np.arange(60, 86)  # ages 60+
+num_years = target.shape[2]
+
+# Sum across all groups and ages >= 60
+above60_total = target[:, age_60_idx, :num_years].sum(axis=(0, 1))
+
+# Sum across all groups and all ages
+overall_total = target[:, :, :num_years].sum(axis=(0, 1))
+
+# Compute proportion (vector of length num_years)
+prop_above60 = above60_total / overall_total
+
+# Example: print last-year value and trend
+print(f"Latest year proportion (≥60): {prop_above60[-1]:.2%}")
+#%%
+
+for year_idx, prop in enumerate(prop_above60):
+    print(f"Year {year_idx + 1990}: Proportion (≥60) = {prop:.2%}")
+
+
+#%%
+
+#%%
+# Assuming target has shape (6, age, year)
+age_80_idx = np.arange(80, 86)  # ages 80+
+num_years = target.shape[2]
+
+# Sum across all groups and ages >= 80
+above80_total = target[:, age_80_idx, :num_years].sum(axis=(0, 1))
+
+# Sum across all groups and all ages
+overall_total = target[:, :, :num_years].sum(axis=(0, 1))
+
+# Compute proportion (vector of length num_years)
+prop_above80 = above80_total / overall_total
+
+# Example: print last-year value and trend
+print(f"Latest year proportion (≥80): {prop_above80[-1]:.2%}")
+#%%
+for year_idx, prop in enumerate(prop_above80):
+    print(f"Year {year_idx + 1990}: Proportion (≥80) = {prop:.2%}")
 
 # %%

@@ -1,0 +1,8 @@
+
+
+process
+
+python forecast_albu_new.py
+python forecast_ckd.py                                   
+python hazard.py
+python apply_stage_mortality.py

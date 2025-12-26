@@ -55,6 +55,47 @@ def main():
     print(f"Built {len(bmi_matrix_ls)} age-group matrices")
     print(f"Shape of first age group: {bmi_matrix_ls[0].shape}")
 
+    # 
+
+    # modification 
+
+    
+
+    # Assuming 'age_matrix_vec' is available as a list of matrices matching the 8 cohorts.
+    # If 'age_matrix_vec' contains the shape (n_albu, n_sim, n_people, n_year), 
+    # we will slice index [0] to match the BMI shape (n_sim, n_people, n_year).
+
+    for i in range(len(bmi_matrix_ls)):
+        bmi_matrix = bmi_matrix_ls[i]
+        age_raw = age_matrix_vec[i]
+        
+        # Handle dimensions: Ensure we have (n_sim, n_people, n_year)
+        if age_raw.ndim == 4:
+            # If shape is (n_albu, n_sim, n_people, n_year), take the first slice
+            current_age_matrix = age_raw[0]
+        else:
+            current_age_matrix = age_raw
+
+        # Get the number of years (axis 2)
+        n_years = bmi_matrix.shape[2]
+        
+        # Iterate chronologically starting from index 1 (Year 1991 onwards)
+        for t in range(1, n_years):
+            # 1. Identify individuals currently strictly older than 80
+            #    (Masking avoids modifying dead/non-existent people with age -1/-2)
+            mask_over_80 = current_age_matrix[:, :, t] > 80
+            
+            # 2. For these individuals, overwrite current BMI with previous year's BMI
+            #    Since we loop forward, this carries the 'Age 80' value forward indefinitely.
+            bmi_matrix[:, :, t][mask_over_80] = bmi_matrix[:, :, t-1][mask_over_80]
+
+        print(f"Applied BMI clamp (freeze > age 80) for cohort {i}")
+        
+        # Store the modified matrix back into the list
+        bmi_matrix_ls[i] = bmi_matrix
+
+
+
     # Save matrices
     parent_dir = "../future_data_1990_2050/bmi_matrix"
     os.makedirs(parent_dir, exist_ok=True)
