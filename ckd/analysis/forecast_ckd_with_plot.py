@@ -50,76 +50,76 @@ if np.max(albu_mat_storage[0]) != 2:
 print("Unique values in diabetes_mat_storage[0]:", np.unique(diabetes_mat_storage[0]))
 print("Unique values in hypertension_mat_storage[0]:", np.unique(hypertension_mat_storage[0]))
 
-#%% begin 
-import numpy as np
+# #%% begin 
+# import numpy as np
 
-eGFR_matrix_ls = []  # List to store eGFR matrices
-for idx in range(8):
-    # --- 1. PREPARE STATIC DATA (Constant across k) ---
-    # Current Shape: (Runs, Subjects, Time) e.g., (10, 103903, 61)
-    # We add a new dimension at axis 0 for 'k' broadcasting: (1, 10, 103903, 61)
-    matrix = age_matrix_vec[idx][np.newaxis, ...] 
-    bmi_values = bmi_matrix_ls[idx][np.newaxis, ...]
-    diabetes_value = diabetes_mat_storage[idx][np.newaxis, ...]
-    hypertension_value = hypertension_mat_storage[idx][np.newaxis, ...]
+# eGFR_matrix_ls = []  # List to store eGFR matrices
+# for idx in range(8):
+#     # --- 1. PREPARE STATIC DATA (Constant across k) ---
+#     # Current Shape: (Runs, Subjects, Time) e.g., (10, 103903, 61)
+#     # We add a new dimension at axis 0 for 'k' broadcasting: (1, 10, 103903, 61)
+#     matrix = age_matrix_vec[idx][np.newaxis, ...] 
+#     bmi_values = bmi_matrix_ls[idx][np.newaxis, ...]
+#     diabetes_value = diabetes_mat_storage[idx][np.newaxis, ...]
+#     hypertension_value = hypertension_mat_storage[idx][np.newaxis, ...]
 
-    # Get coefficients
-    eth = map_eth_str(idx)
-    gender2 = idx % 2
-    beta0, beta1, beta2, beta3, beta4, sigma = coefficients[eth]
+#     # Get coefficients
+#     eth = map_eth_str(idx)
+#     gender2 = idx % 2
+#     beta0, beta1, beta2, beta3, beta4, sigma = coefficients[eth]
 
-    # --- 2. PREPARE NOISE ---
-    # Generate noise for (Runs, Subjects) -> Shape (10, 103903)
-    # Note: Using matrix.shape[1] and [2] because matrix is now 4D (1, R, S, T)
-    n_runs, n_subjects = matrix.shape[1], matrix.shape[2]
+#     # --- 2. PREPARE NOISE ---
+#     # Generate noise for (Runs, Subjects) -> Shape (10, 103903)
+#     # Note: Using matrix.shape[1] and [2] because matrix is now 4D (1, R, S, T)
+#     n_runs, n_subjects = matrix.shape[1], matrix.shape[2]
     
-    row_noise = np.random.normal(loc=0, scale=sigma, size=(n_runs, n_subjects))
+#     row_noise = np.random.normal(loc=0, scale=sigma, size=(n_runs, n_subjects))
     
-    # Reshape for broadcasting:
-    # 1 (k cases) x Runs x Subjects x 1 (Time)
-    row_noise = row_noise[np.newaxis, :, :, np.newaxis]
+#     # Reshape for broadcasting:
+#     # 1 (k cases) x Runs x Subjects x 1 (Time)
+#     row_noise = row_noise[np.newaxis, :, :, np.newaxis]
 
-    # --- 3. PREPARE VARIABLE DATA (Varies by k) ---
-    # albu_mat_storage[idx] likely has shape (5, Runs, Subjects, Time)
-    # This array drives the broadcasting size of the first dimension to 5.
-    albu_all_k = albu_mat_storage[idx] 
+#     # --- 3. PREPARE VARIABLE DATA (Varies by k) ---
+#     # albu_mat_storage[idx] likely has shape (5, Runs, Subjects, Time)
+#     # This array drives the broadcasting size of the first dimension to 5.
+#     albu_all_k = albu_mat_storage[idx] 
 
-    # --- 4. COMPUTE COEFFICIENTS (Vectorized) ---
-    # Compute on the full arrays at once
-    diabetes_coefficient = np.where(diabetes_value == 0.5, 0.5, np.where(diabetes_value == 1, 1., 0))
-    # This runs on the (5, ...) shape of albu_all_k
-    albu_coefficient = np.where(albu_all_k == 1, 0.1, np.where(albu_all_k == 2, 0.5, 0))
-    hypertension_coefficient = 0.1
+#     # --- 4. COMPUTE COEFFICIENTS (Vectorized) ---
+#     # Compute on the full arrays at once
+#     diabetes_coefficient = np.where(diabetes_value == 0.5, 0.5, np.where(diabetes_value == 1, 1., 0))
+#     # This runs on the (5, ...) shape of albu_all_k
+#     albu_coefficient = np.where(albu_all_k == 1, 0.1, np.where(albu_all_k == 2, 0.5, 0))
+#     hypertension_coefficient = 0.1
 
-    # --- 5. COMPUTE eGFR (Vectorized) ---
-    # Define valid mask (Age != -1)
-    valid_mask = (matrix != -1)
+#     # --- 5. COMPUTE eGFR (Vectorized) ---
+#     # Define valid mask (Age != -1)
+#     valid_mask = (matrix != -1)
 
-    # Calculate all 5 cases at once
-    # Result shape: (5, Runs, Subjects, Time)
-    eGFR_cases = np.where(
-        valid_mask,
-        (
-            beta0 +
-            beta1 * matrix * 0.5 +
-            beta2 * gender2 +
-            beta3 * matrix * gender2 * 0.5 +
-            beta4 * np.log(bmi_values) +
-            beta1 * matrix * hypertension_coefficient * hypertension_value + 
-            beta1 * matrix * diabetes_coefficient * diabetes_value + 
-            beta1 * matrix * albu_coefficient * albu_all_k + 
-            row_noise 
-        ),
-        -1.0
-    )
+#     # Calculate all 5 cases at once
+#     # Result shape: (5, Runs, Subjects, Time)
+#     eGFR_cases = np.where(
+#         valid_mask,
+#         (
+#             beta0 +
+#             beta1 * matrix * 0.5 +
+#             beta2 * gender2 +
+#             beta3 * matrix * gender2 * 0.5 +
+#             beta4 * np.log(bmi_values) +
+#             beta1 * matrix * hypertension_coefficient * hypertension_value + 
+#             beta1 * matrix * diabetes_coefficient * diabetes_value + 
+#             beta1 * matrix * albu_coefficient * albu_all_k + 
+#             row_noise 
+#         ),
+#         -1.0
+#     )
 
-    # Append the result (which is already an array of shape (5, ...))
-    eGFR_matrix_ls.append(eGFR_cases)
+#     # Append the result (which is already an array of shape (5, ...))
+#     eGFR_matrix_ls.append(eGFR_cases)
 
 
-# Display the resulting eGFR matrix
-print("eGFR Matrix:")
-print(eGFR_matrix_ls[0][0,:,:])
+# # Display the resulting eGFR matrix
+# print("eGFR Matrix:")
+# print(eGFR_matrix_ls[0][0,:,:])
 
 
 # %% save the eGFR 

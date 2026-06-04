@@ -30,10 +30,16 @@ FUTURE_DATA_DIR = CKD_DIR / "future_data_1990_2050"
 MORTALITY_DIR = FUTURE_DATA_DIR / "mortality_adjusted"
 RESULTS_DIR = SCRIPT_DIR / "results_df"
 
-
+'../future_data_1990_2050/ckd_matrix/stage_mat_hospital_{i}.npy'
 # %%
 def load_stage_matrices() -> list[np.ndarray]:
-    return [np.load(MORTALITY_DIR / f"stage_matrix_group_{idx}.npy") for idx in range(8)]
+    return [np.load("../future_data_1990_2050/ckd_matrix/stage_mat_hospital_{idx}.npy") for idx in range(8)]
+    #return [np.load(MORTALITY_DIR / f"stage_matrix_group_{idx}.npy") for idx in range(8)]
+
+# import numpy as np
+# eGFR_matrix_ls = []
+# for i in range(8):
+#     eGFR_matrix_ls.append(np.load(f'../future_data_1990_2050/ckd_matrix/eGFR_hospital_adherence_{i}.npy'))
 
 
 def load_age_matrices() -> list[np.ndarray]:
@@ -44,7 +50,22 @@ def load_albu_matrices() -> list[np.ndarray]:
     albu_dir = FUTURE_DATA_DIR / "albu_matrix_forecast"
     return [np.load(albu_dir / f"albu_mat_group_{idx}.npy") for idx in range(8)]
 
+# %% 
+# albu_matrices = load_albu_matrices()
+# stage_matrices_doubled = [mat / 16 for mat in albu_matrices]
+# albu_dir = FUTURE_DATA_DIR / "albu_matrix_forecast"
+# for idx, mat in enumerate(stage_matrices_doubled):
+#     np.save(albu_dir / f"albu_mat_group_{idx}.npy", mat)
 
+
+# %%
+# Check the unique values for each matrix in stage_matrices_doubled
+for idx, mat in enumerate(stage_matrices_doubled):
+    unique_vals = np.unique(mat)
+    print(f"Unique values in stage_matrices_doubled[{idx}]: {unique_vals}")
+
+
+# %%
 def load_hypertension_matrices() -> list[np.ndarray]:
     hyper_dir = FUTURE_DATA_DIR / "hyper_matrix"
     return [np.load(hyper_dir / f"hypertension_mat_{idx}.npy") for idx in range(8)]
@@ -58,7 +79,7 @@ def load_diabetes_matrices() -> list[np.ndarray]:
 def build_general_ckd_matrices(
     stage_matrix_ls: Sequence[np.ndarray],
     acr_matrix_ls: Sequence[np.ndarray],
-    healthy_stage_threshold: int = 2,
+    healthy_stage_threshold: int = 1,
 ) -> list[np.ndarray]:
     """
     Create CKD indicator matrices for each ethnicity/gender group.
@@ -106,8 +127,23 @@ albu_mat_storage = load_albu_matrices()
 hypertension_mat_storage = load_hypertension_matrices()
 diabetes_mat_storage = load_diabetes_matrices()
 
+# %% 
+stage_matrix_ls[0]
+
+# %% 
+import numpy as np
+print("Unique values in diabetes_mat_storage[0]:", np.unique(diabetes_mat_storage[0]))
+
+
 # %%
+
+albu_mat_storage = [albu_mat[[0,4]] for albu_mat in albu_mat_storage]
 general_ckd_ls = build_general_ckd_matrices(stage_matrix_ls, albu_mat_storage)
+
+import numpy as np
+eGFR_matrix_ls = []
+for i in range(8):
+    eGFR_matrix_ls.append(np.load(f'../future_data_1990_2050/ckd_matrix/eGFR_hospital_adherence_{i}.npy'))
 
 
 # %%
@@ -2163,8 +2199,12 @@ import matplotlib.pyplot as plt
 
 # 1. Load Data
 # Ensure 'screening_performance_results.csv' is in your working directory
-df = df_results
 
+
+results_df = pd.read_csv("results_df/screening_results_with_parti_v2.csv")
+
+df = results_df
+# %%
 # 2. Calculate Distance to Perfect (Optimization Metric)
 # This measures how close a point is to the top-left corner (Sens=1, Spec=1)
 df['Dist_to_Perfect'] = np.sqrt((1 - df['sensitivity'])**2 + (1 - df['specificity'])**2)
@@ -2178,10 +2218,10 @@ print(top_5_80[['gen_thresh', 'diab_thresh', 'hyper_thresh',
                 'sensitivity', 'specificity', 'NNS', 'Dist_to_Perfect']])
 
 # --- Analysis B: Sensitivity > 85% ---
-df_85 = df[df['sensitivity'] > 0.85].copy()
+df_85 = df[df['sensitivity'] > 0.45].copy()
 top_5_85 = df_85.sort_values('Dist_to_Perfect', ascending=True).head(5)
 
-print("\nTop 5 Scenarios (Sensitivity > 85%):")
+print("\nTop 5 Scenarios (Sensitivity > 45%):")
 print(top_5_85[['gen_thresh', 'diab_thresh', 'hyper_thresh', 
                 'sensitivity', 'specificity', 'NNS', 'Dist_to_Perfect']])
 
